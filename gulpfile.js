@@ -1,0 +1,48 @@
+
+
+'use strict';
+
+var browserify = require('browserify');
+var babel = require('gulp-babel');
+var gulp = require('gulp');
+var reactify = require('reactify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var sourcemaps = require('gulp-sourcemaps');
+var gutil = require('gulp-util');
+var glob = require('glob');
+var debug = require('gulp-debug');
+
+var path = require('path');
+var join = path.join;
+
+var config = {
+    sourceFolder: './app',
+    buildFolder: './public',
+    bundleName: 'app.js'
+};
+
+gulp.task('copy', function(){
+    gulp.src(join(config.sourceFolder, '/assets/**/*'), { base: join(config.sourceFolder, 'assets/') })
+        .pipe(gulp.dest(join(config.buildFolder, 'assets')));
+})
+
+gulp.task('build', ['copy'], function () {
+    // set up the browserify instance on a task basis
+    var b = browserify({
+        entries: glob.sync(join(config.sourceFolder, '/**/*.js')),
+        debug: true
+    });
+
+    b.transform(reactify);
+
+    return b.bundle()
+        .pipe(source(config.bundleName))
+        .pipe(debug())
+        .pipe(buffer())
+        .pipe(sourcemaps.init({ loadMaps: true }))
+            .pipe(babel())
+            .on('error', gutil.log)
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest(config.buildFolder));
+});
