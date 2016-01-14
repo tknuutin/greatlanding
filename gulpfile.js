@@ -12,6 +12,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 var glob = require('glob');
 var debug = require('gulp-debug');
+var del = require('del');
 
 var path = require('path');
 var join = path.join;
@@ -21,6 +22,10 @@ var config = {
     buildFolder: './public',
     bundleName: 'app.js'
 };
+
+gulp.task('clean', function(cb) {
+    del(config.buildFolder, cb);
+});
 
 gulp.task('copy', function(){
     gulp.src(join(config.sourceFolder, '/assets/**/*'), { base: join(config.sourceFolder, 'assets/') })

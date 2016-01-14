@@ -14,6 +14,7 @@
   "devDependencies": {
     "lodash": "^3.10.1",
     "browserify": "^11.0.1",
+    "del": "^1.2.1",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.2.0",
     "gulp-debug": "^2.0.1",
