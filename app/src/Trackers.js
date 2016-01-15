@@ -45,8 +45,14 @@ class KeyboardTracker {
             case KEYS.W:
                 this.callbacks.onForwardUp();
                 break;
+            case KEYS.A:
+                this.callbacks.onLeftUp();
+                break;
             case KEYS.S:
                 this.callbacks.onReverseUp();
+                break;
+            case KEYS.D:
+                this.callbacks.onRightUp();
                 break;
             default:
                 break;

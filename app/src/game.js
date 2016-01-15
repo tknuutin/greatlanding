@@ -3,27 +3,28 @@ let _ = require('lodash');
 let { Rectangle, Sprite } = require('./Shapes');
 let { Renderer } = require('./Renderer');
 let { KeyboardTracker } = require('./Trackers');
+let { EngineSmoke } = require('./Effects');
 
 const FPS = 30;
 
 const MAIN_THRUST = 0.7;
-const ROT_THRUST = 1.5;
-const REVERSE_THRUST = 0.7;
+const ROT_THRUST = 1.2;
+const REVERSE_THRUST = 0.35;
 
-function rads(deg){
+function rads(deg) {
     return (Math.PI / 180) * deg;
-};
+}
 
 function rotateAroundPoint(rotation, rotationpoint, inPoint) {
     // http://stackoverflow.com/questions/3249083/is-this-how-rotation-about-a-point-is-done
-    var point = {
+    let point = {
         x: inPoint.x,
-        y: inPoint.y,
+        y: inPoint.y
     };
 
     // Translate
-    var translatedX = point.x - rotationpoint.x;
-    var translatedY = point.y - rotationpoint.y;
+    let translatedX = point.x - rotationpoint.x;
+    let translatedY = point.y - rotationpoint.y;
 
     point.x = Math.cos(rotation) * translatedX - Math.sin(rotation) * translatedY;
     point.y = Math.sin(rotation) * translatedX + Math.cos(rotation) * translatedY;
@@ -45,9 +46,83 @@ class Rocket extends Sprite {
                 x: 0,
                 y: 0
             }
-        }
+        };
 
-        this.mainEngineOn = false;
+        this.engines = {
+            main: {
+                def: {
+                    x: this.width / 2, y: 60,
+                    angle: 180, scale: 1, force: 3
+                }
+            },
+            reverse1: {
+                def: {
+                    x: 7, y: 10,
+                    angle: 0, scale: 0.5, force: 2
+                }
+            },
+            reverse2: {
+                def: {
+                    x: this.width - 7, y: 10,
+                    angle: 0, scale: 0.5, force: 2
+                }
+            },
+            left: {
+                def: {
+                    x: 5, y: 12,
+                    angle: 270, scale: 0.5, force: 2
+                }
+            },
+            right: {
+                def: {
+                    x: this.width - 5, y: 12,
+                    angle: 90, scale: 0.5, force: 2
+                }
+            }
+        };
+
+        _.forIn(this.engines, (engine, name) => {
+            engine.on = false;
+            let obj = _.cloneDeep(engine.def);
+            obj.img = opts.smokeImg;
+            engine.smoke = new EngineSmoke(obj);
+        });
+
+
+        // this.mainEngineOn = false;
+        // this.mainSmoke = new EngineSmoke({
+        //     img: opts.smokeImg,
+        //     x: this.width / 2, y: 60,
+        //     angle: 180,
+        //     scale: 1,
+        //     force: 3
+        // });
+
+        // this.reverseEngineOn = false;
+        // this.reverseSmoke1 = new EngineSmoke({
+        //     img: opts.smokeImg,
+        //     x: 7, y: 10,
+        //     angle: 0,
+        //     scale: 0.5,
+        //     force: 2
+        // });
+        // this.reverseSmoke2 = new EngineSmoke({
+        //     img: opts.smokeImg,
+        //     x: this.width - 7, y: 10,
+        //     angle: 0,
+        //     scale: 0.5,
+        //     force: 2
+        // });
+    }
+
+    sendSignalToEngine(engine, isPowered) {
+        engine.on = isPowered;
+        if (isPowered) {
+            engine.smoke.start();
+        }
+        else {
+            engine.smoke.stop();
+        }
     }
 
     applyForwardForce(force) {
@@ -57,22 +132,58 @@ class Rocket extends Sprite {
         this.move.vector.y += newThrust.y;
     }
 
-    setMainEngine(status) {
-        this.mainEngineOn = status;
-    }
+    // setMainEngine(isOn) {
+    //     this.mainEngineOn = isOn;
+    //     if (isOn) {
+    //         this.mainSmoke.start();
+    //     }
+    //     else {
+    //         this.mainSmoke.stop();
+    //     }
+    // }
+
+    // setReverseEngines(isOn) {
+    //     this.reverseEngineOn = isOn;
+    //     if (isOn) {
+    //         this.reverseSmoke1.start();
+    //         this.reverseSmoke2.start();
+    //     }
+    //     else {
+    //         this.reverseSmoke1.stop();
+    //         this.reverseSmoke2.stop();
+    //     }
+    // }
 
     update() {
-        if (this.mainEngineOn) {
+        if (this.engines.main.on) {
             this.applyForwardForce(-MAIN_THRUST);
         }
+        if (this.engines.reverse1.on) {
+            this.applyForwardForce(REVERSE_THRUST);
+        }
+        if (this.engines.left.on) {
+            this.rotspeed += ROT_THRUST;
+        }
+        if (this.engines.right.on) {
+            this.rotspeed -= ROT_THRUST;
+        }
+    }
+
+    renderSmoke(ctx, smoke) {
+        smoke.prerender(ctx);
+        smoke.render(ctx);
+        smoke.postrender(ctx);
+    }
+
+    render(ctx) {
+        super.render(ctx);
+        _.forIn(this.engines, (engine, name) => this.renderSmoke(ctx, engine.smoke));
     }
 }
 
 class ShapeManager {
     constructor(images) {
         this.shapes = [];
-
-        console.log('images', images);
 
         this.addShape(new Rectangle({
             x: 0, y: 0,
@@ -81,14 +192,22 @@ class ShapeManager {
         }));
 
         this.rocket = new Rocket({
+            smokeImg: images['cloud.png'],
             img: images['rocket.png'],
-            x: 100, y: 100,
+            x: 100, y: 200,
             rotation: 30,
             width: 114 / 4, height: 275 / 4,
-            regX: 114 / 8, regY: 275 / 8
+            regX: 114 / 8, regY: (275 / 8) + 5  // Adding five so it looks like the approx central mass point
         });
-
         this.addShape(this.rocket);
+
+        // smoke.start();
+        // setTimeout(() => {
+        //     console.log('stopped');
+        //     smoke.stop();
+        // }, 2000);
+
+        // this.addShape(smoke);
     }
 
     updateShapePositions() {
@@ -132,26 +251,38 @@ class Game {
                 console.log('logic:', this.count);
                 this.count = 0;
             }, 1000);
-
-            renderer.logFps();
         }
 
         let rocket = this.shapeManager.rocket;
         this.keyInputs = {
             onForwardDown: () => {
-                rocket.setMainEngine(true);
+                rocket.sendSignalToEngine(rocket.engines.main, true);
             },
             onForwardUp: () => {
-                rocket.setMainEngine(false);
+                rocket.sendSignalToEngine(rocket.engines.main, false);
             },
             onReverseDown: () => {
-                applyForwardForce(REVERSE_THRUST);
+                rocket.sendSignalToEngine(rocket.engines.reverse1, true);
+                rocket.sendSignalToEngine(rocket.engines.reverse2, true);
+            },
+            onReverseUp: () => {
+                rocket.sendSignalToEngine(rocket.engines.reverse1, false);
+                rocket.sendSignalToEngine(rocket.engines.reverse2, false);
             },
             onRightDown: () => {
-                rocket.rotspeed += ROT_THRUST;
+                rocket.sendSignalToEngine(rocket.engines.left, true);
+            },
+            onRightUp: () => {
+                rocket.sendSignalToEngine(rocket.engines.left, false);
+                // rocket.rotspeed += ROT_THRUST;
             },
             onLeftDown: () => {
-                rocket.rotspeed -= ROT_THRUST;
+                rocket.sendSignalToEngine(rocket.engines.right, true);
+                // rocket.rotspeed -= ROT_THRUST;
+            },
+            onLeftUp: () => {
+                rocket.sendSignalToEngine(rocket.engines.right, false);
+                // rocket.rotspeed -= ROT_THRUST;
             }
         };
     }
@@ -251,8 +382,12 @@ function startApp(images) {
         onForwardUp: game.keyInputs.onForwardUp,
 
         onReverseDown: game.keyInputs.onReverseDown,
+        onReverseUp: game.keyInputs.onReverseUp,
+
         onRightDown: game.keyInputs.onRightDown,
-        onLeftDown: game.keyInputs.onLeftDown
+        onRightUp: game.keyInputs.onRightUp,
+        onLeftDown: game.keyInputs.onLeftDown,
+        onLeftUp: game.keyInputs.onLeftUp,
     });
 
     game.start();
@@ -260,7 +395,8 @@ function startApp(images) {
 
 window.onload = function onAppLoad() {
     preloadImages(_.map([
-        'rocket.png'
+        'rocket.png',
+        'cloud.png'
     ])).then((images) => {
         startApp(_.reduce(images, (imageMap, value) => {
             imageMap[value.path] = value.img;
