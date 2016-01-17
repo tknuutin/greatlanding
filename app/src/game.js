@@ -1,6 +1,7 @@
 
 let _ = require('lodash');
 let { Rectangle } = require('./Shapes');
+let { Planet } = require('./Planet');
 let { Rocket } = require('./Rocket');
 let { Renderer } = require('./Renderer');
 let { KeyboardTracker } = require('./Trackers');
@@ -11,6 +12,14 @@ const FPS = 30;
 class ShapeManager {
     constructor(images) {
         this.shapes = [];
+
+        this.addShape(new Planet({
+            x: 200, y: 1700,
+            size: 3000, fillStyle: '#85889E',
+            atmsSize: 3500,
+            // In RGB to avoid converting when we use a rgba string in a gradient
+            atmsColor: [179, 232, 255]
+        }));
 
         this.addShape(new Rectangle({
             x: 10, y: 10,
@@ -27,6 +36,8 @@ class ShapeManager {
             regX: 114 / 8, regY: (275 / 8) + 5  // Adding five so it looks like the approx central mass point
         });
         this.addShape(this.rocket);
+
+
     }
 
     updateShapePositions() {
