@@ -8,7 +8,7 @@ class Shape {
         this.scaleX = 1;
         this.scaleY = 1;
         this.regX = opts.regX || 0;
-        this.regY = opts.regY || 0;
+        this.regY = opts.regY ||0;
         this.alpha = 1;
     }
 

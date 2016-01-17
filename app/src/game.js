@@ -13,16 +13,16 @@ class ShapeManager {
         this.shapes = [];
 
         this.addShape(new Rectangle({
-            x: 0, y: 0,
-            width: 500, height: 400,
-            fillStyle: '#000'
+            x: 10, y: 10,
+            width: 50, height: 50,
+            fillStyle: '#ff0000'
         }));
 
         this.rocket = new Rocket({
             smokeImg: images['cloud.png'],
             img: images['rocket.png'],
             x: 100, y: 200,
-            rotation: 30,
+            rotation: 0,
             width: 114 / 4, height: 275 / 4,
             regX: 114 / 8, regY: (275 / 8) + 5  // Adding five so it looks like the approx central mass point
         });
@@ -93,17 +93,15 @@ class Game {
             },
             onRightUp: () => {
                 rocket.sendSignalToEngine(rocket.engines.left, false);
-                // rocket.rotspeed += ROT_THRUST;
             },
             onLeftDown: () => {
                 rocket.sendSignalToEngine(rocket.engines.right, true);
-                // rocket.rotspeed -= ROT_THRUST;
             },
             onLeftUp: () => {
                 rocket.sendSignalToEngine(rocket.engines.right, false);
-                // rocket.rotspeed -= ROT_THRUST;
             }
         };
+        this.rocket = rocket;
     }
 
     logicUpdate() {
@@ -140,7 +138,11 @@ class Game {
             }
 
             if (loops) {
-                this.renderer.render(this.shapeManager.getShapes());
+                updateUI(this.rocket);
+                this.renderer.render(this.shapeManager.getShapes(), {
+                    x: this.rocket.x, y: this.rocket.y
+                });
+                // this.stopped = true;
             }
 
             // setTimeout(() => {
@@ -184,10 +186,15 @@ function preloadImages(sources) {
     }));
 };
 
+function updateUI() {
+    // nothing here
+}
+
 function startApp(images) {
     let canvas = document.getElementById('gamecanvas');
 
     let renderer = new Renderer({
+        background: images['spacebg.jpg'],
         canvas,
         width: 500, height: 400
     });
@@ -213,9 +220,26 @@ function startApp(images) {
 }
 
 window.onload = function onAppLoad() {
+    updateUI = (() => {
+        let uix = document.getElementById('ui-x');
+        let uiy = document.getElementById('ui-y');
+        let uispeedx = document.getElementById('ui-speedx');
+        let uispeedy = document.getElementById('ui-speedy');
+        let uirotation = document.getElementById('ui-rotation');
+        return (rocket) => {
+            uix.innerHTML = Math.round(rocket.x);
+            uiy.innerHTML = Math.round(rocket.y);
+            let round = (num) => Math.round(num * 100) / 100;
+            uispeedx.innerHTML = round(rocket.move.vector.x);
+            uispeedy.innerHTML = round(rocket.move.vector.y);
+            uirotation.innerHTML = round(rocket.rotation);
+        };
+    })();
+
     preloadImages(_.map([
         'rocket.png',
-        'cloud.png'
+        'cloud.png',
+        'spacebg.jpg'
     ])).then((images) => {
         startApp(_.reduce(images, (imageMap, value) => {
             imageMap[value.path] = value.img;
