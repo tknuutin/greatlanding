@@ -13,9 +13,19 @@ class Rocket extends Sprite {
     constructor(opts) {
         super(opts);
 
+        // this.launched = false;
+        this.launched = true;
+        this.launching = false;
+
+        this.points = [
+            { x: 0, y: -this.height / 2 },
+            { x: -this.width / 2, y: this.height / 2 },
+            { x: this.width / 2, y: this.height / 2 }
+        ];
+
         this.rotspeed = 0;
         this.move = {
-            vector: {
+            v: {
                 x: 0,
                 y: 0
             }
@@ -75,12 +85,21 @@ class Rocket extends Sprite {
     applyForwardForce(force) {
         let thrust = { x: 0, y: force };
         let newThrust = rotateAroundPoint(rads(this.rotation), { x: 0, y: 0 }, thrust);
-        this.move.vector.x += newThrust.x;
-        this.move.vector.y += newThrust.y;
+        this.move.v.x += newThrust.x;
+        this.move.v.y += newThrust.y;
     }
 
     update() {
         if (this.engines.main.on) {
+            if (!this.launched && !this.launching) {
+                this.launching = true;
+                setTimeout(function() {
+                    this.launched = true;
+                    console.log('launched!');
+                    this.launching = false;
+                }, 500);
+            }
+
             this.applyForwardForce(-MAIN_THRUST);
         }
         if (this.engines.reverse1.on) {
@@ -92,6 +111,10 @@ class Rocket extends Sprite {
         if (this.engines.right.on) {
             this.rotspeed -= ROT_THRUST;
         }
+    }
+
+    getPoints() {
+        return _.map(this.points, (point) => rotateAroundPoint(rads(this.rotation), { x: 0, y: 0, }, point));
     }
 
     renderSmoke(ctx, smoke) {

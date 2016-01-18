@@ -1,6 +1,7 @@
 
 let _ = require('lodash');
 let { Shape } = require('./Shapes');
+let Calc = require('./Calc');
 
 function createTemporaryCanvas(size) {
     let canvas = document.createElement('canvas');
@@ -73,6 +74,15 @@ class Planet extends Shape {
         ctx.drawImage(atms, 0, 0, atms.width, atms.height, 0, 0, atms.width, atms.height);
         ctx.translate(atmsSize / 2, atmsSize / 2);
         ctx.restore();
+    }
+
+    collidesWith(rocket) {
+        let collision = _.some(rocket.getPoints(), (point) => {
+            let px = point.x + rocket.x;
+            let py = point.y + rocket.y;
+            return Calc.distance(px, py, this.x, this.y) <= (this.size / 2);
+        });
+        return collision;
     }
 
     render(ctx) {

@@ -1,6 +1,12 @@
 
+let V = require('./Vector');
+
 function rads(deg) {
     return (Math.PI / 180) * deg;
+}
+
+function degs(rad) {
+    return rad * (180 / Math.PI);
 }
 
 function rotateAroundPoint(rotation, rotationpoint, inPoint) {
@@ -24,4 +30,25 @@ function rotateAroundPoint(rotation, rotationpoint, inPoint) {
     return point;
 }
 
-module.exports = { rads, rotateAroundPoint };
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt((y1 - y2) * (y1 - y2) + (x1 - x2) * (x1 - x2));
+}
+
+function getPlanetLateralSpeed(planet, rocket) {
+    let planetToShip = V.sub(planet, rocket);
+    let surfaceTangential = V.normals(planetToShip)[0];
+    let lateral = V.project(rocket.move.v, surfaceTangential);
+    return Math.abs(lateral);
+}
+
+function getPlanetVerticalSpeed(planet, rocket) {
+    let planetToShip = V.sub(planet, rocket);
+    return V.project(rocket.move.v, planetToShip);;
+}
+
+module.exports = {
+    rads, degs,
+    rotateAroundPoint,
+    distance,
+    getPlanetLateralSpeed, getPlanetVerticalSpeed
+};

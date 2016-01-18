@@ -1,6 +1,7 @@
 
 class Shape {
     constructor(opts = {}) {
+        this.name = opts.name;
         this.x = opts.x;
         this.y = opts.y;
         this.fillStyle = opts.fillStyle;
