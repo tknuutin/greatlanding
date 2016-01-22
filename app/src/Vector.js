@@ -1,7 +1,5 @@
 
 function normals(v) {
-    let dx = v.x;
-    let dy = v.y;
     return [{ x: -v.y, y: v.x }, { x: v.y, y: -v.x}];
 }
 
@@ -19,9 +17,20 @@ function sub(v1, v2) {
 
 function div(v1, scalar) {
     return {
-    	x: v1.x / scalar,
-    	y: v1.y / scalar
+        x: v1.x / scalar,
+        y: v1.y / scalar
     };
+}
+
+function mul(v1, scalar) {
+    return {
+        x: v1.x * scalar,
+        y: v1.y * scalar
+    }
+}
+
+function unit(v) {
+    return div(v, magnitude(v));
 }
 
 function magnitude(v) {
@@ -41,5 +50,5 @@ function project(v1, v2) {
 }
 
 module.exports = {
-	normals, add, sub, magnitude, dot, angle, div, project
+    normals, add, sub, unit, magnitude, dot, angle, div, mul, project
 };

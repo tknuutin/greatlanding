@@ -17,6 +17,8 @@ class Rocket extends Sprite {
         this.launched = true;
         this.launching = false;
 
+        this.isRocket = true;
+
         this.cutEngines = false;
 
         this.points = [

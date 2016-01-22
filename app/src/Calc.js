@@ -41,6 +41,10 @@ function distance(x1, y1, x2, y2) {
     return Math.sqrt((y1 - y2) * (y1 - y2) + (x1 - x2) * (x1 - x2));
 }
 
+function distancePoints(p1, p2) {
+    return distance(p1.x, p1.y, p2.x, p2.y);
+}
+
 function getPlanetLateralSpeed(planet, rocket) {
     let planetToShip = V.sub(planet, rocket);
     let surfaceTangential = V.normals(planetToShip)[0];
@@ -56,7 +60,7 @@ function getPlanetVerticalSpeed(planet, rocket) {
 module.exports = {
     rads, degs,
     rotateAroundPoint,
-    distance,
+    distance, distancePoints,
     getPlanetLateralSpeed, getPlanetVerticalSpeed,
     clampRot
 };

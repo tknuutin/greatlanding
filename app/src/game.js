@@ -1,74 +1,11 @@
 
 let _ = require('lodash');
-let { Rectangle } = require('./Shapes');
-let { Planet } = require('./Planet');
-let { Rocket } = require('./Rocket');
 let { Renderer } = require('./Renderer');
 let { KeyboardTracker } = require('./Trackers');
 let { GameLogic } = require('./GameLogic');
-let { clampRot } = require('./Calc');
-let { getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('./Calc');
+let { ShapeManager } = require('./ShapeManager');
 
 const FPS = 30;
-
-class ShapeManager {
-    constructor(images, planets) {
-        this.shapes = [];
-
-        this.planets = _.map(planets, (planetDef) => {
-            let planet = new Planet(planetDef);
-            this.addShape(planet);
-            return planet;
-        });
-
-        this.addShape(new Rectangle({
-            x: 10, y: 10,
-            width: 50, height: 50,
-            fillStyle: '#ff0000'
-        }));
-
-        this.rocket = new Rocket({
-            smokeImg: images['cloud.png'],
-            img: images['rocket.png'],
-            x: -100, y: 150,
-            rotation: 30,
-            width: 114 / 4, height: 275 / 4,
-            regX: 114 / 8, regY: (275 / 8) + 5  // Adding five so it looks like the approx central mass point
-        });
-        this.addShape(this.rocket);
-    }
-
-    updateShapePositions() {
-        _.forEach(this.shapes, (shape) => {
-            if (shape.update) {
-                shape.update();
-            }
-
-            if (shape.move && !shape.move.stopped) {
-                shape.x += shape.move.v.x;
-                shape.y += shape.move.v.y;
-            }
-
-            if (shape.rotspeed) {
-                shape.rotation += shape.rotspeed;
-                shape.rotation = clampRot(shape.rotation);
-            }
-        });
-    }
-
-    getShapes() {
-        return this.shapes;
-    }
-
-    addShape(shape) {
-        this.shapes.push(shape);
-    }
-
-    removeShape(shape) {
-        _.pull(this.shapes, shape);
-    }
-
-}
 
 class Game {
     constructor(opts) {
@@ -79,6 +16,7 @@ class Game {
             {
                 name: 'Home',
                 x: 200, y: 1700,
+                gravity: 10,
                 size: 3000, fillStyle: '#85889E',
                 atmsSize: 3500,
                 // In RGB to avoid converting when we use a rgba string in a gradient
@@ -88,7 +26,9 @@ class Game {
 
         this.gameLogic = new GameLogic(opts.images, this.shapeManager);
         this.debug = {
-            getShapes: () => { return []; }
+            getShapes: () => {
+                return [];
+            }
         };
 
         this.record = false;
@@ -96,7 +36,7 @@ class Game {
 
         if (this.record) {
             setInterval(() => {
-                console.log('logic:', this.count);
+                // console.log('logic:', this.count);
                 this.count = 0;
             }, 1000);
         }
@@ -152,8 +92,7 @@ class Game {
 
                 this.lastInfo = info;
             }
-        }
-        catch (e) {
+        } catch (e) {
             console.error(e.stack);
             this.stopped = true;
         }
@@ -202,11 +141,11 @@ class Game {
             step();
             if (!this.stopped) {
                 window.requestAnimationFrame(nextFrame);
-            }
-            else {
+            } else {
                 console.warn('Stopped!');
             }
-        }
+        };
+
         nextFrame();
     }
 
@@ -229,7 +168,7 @@ function preloadImages(sources) {
             img.src = 'public/assets/img/' + path;
         });
     }));
-};
+}
 
 function updateUI() {
     // nothing here
@@ -258,7 +197,7 @@ function startApp(images) {
         onRightDown: game.keyInputs.onRightDown,
         onRightUp: game.keyInputs.onRightUp,
         onLeftDown: game.keyInputs.onLeftDown,
-        onLeftUp: game.keyInputs.onLeftUp,
+        onLeftUp: game.keyInputs.onLeftUp
     });
 
     game.start();
@@ -288,8 +227,7 @@ function createUpdateUI() {
                 lateral.innerHTML = round(state.lateral);
                 vertical.innerHTML = round(state.vertical);
                 langle.innerHTML = round(state.angle);
-            }
-            else {
+            } else {
                 lateral.innerHTML = '';
                 vertical.innerHTML = '';
             }
