@@ -5,19 +5,33 @@
     <script src='public/app.js'></script>
 </head>
 <body>
+    <style>
+        .ui {
+            display: inline-block;
+            font-size: 16px;
+            min-width: 200px;
+        }
+
+        .ui p {
+            margin-top: 3px;
+            margin-bottom: 3px;
+        }
+    </style>
     <h1>Great landing, guy!</h1>
     <div>
-        <canvas id='gamecanvas' width='500' height='400' style='width: 500px; height: 400px; border: 1px solid black;'></canvas>
+        <canvas id='gamecanvas' width='700' height='500' style='width: 700px; height: 500px; border: 1px solid black;'></canvas>
     </div>
-    <div>
-    	<p><span>X: </span><span id='ui-x'></span></p>
-    	<p><span>Y: </span><span id='ui-y'></span></p>
-    	<p><span>deltaX: </span><span id='ui-speedx'></span></p>
-    	<p><span>deltaY: </span><span id='ui-speedy'></span></p>
-    	<p><span>rotation: </span><span id='ui-rotation'></span></p>
+    <div class='ui'>
+        <p><span>X: </span><span id='ui-x'></span></p>
+        <p><span>Y: </span><span id='ui-y'></span></p>
+        <p><span>speed: </span><span id='ui-speed'></span></p>
+        <p><span>rotation: </span><span id='ui-rotation'></span></p>
+    </div>
+    <div class='ui'>
         <p><span>landing: </span><span id='ui-landing'></span></p>
         <p><span>lateral speed: </span><span id='ui-lateral'></span></p>
         <p><span>vertical speed: </span><span id='ui-vertical'></span></p>
+        <p><span>landing angle: </span><span id='ui-langle'></span></p>
     </div>
 </body>
 </html>

@@ -4,9 +4,9 @@ let { Sprite } = require('./Shapes');
 let { EngineSmoke } = require('./Effects');
 let { rads, rotateAroundPoint } = require('./Calc');
 
-const MAIN_THRUST = 0.7;
-const ROT_THRUST = 0.8;
-const REVERSE_THRUST = 0.35;
+const MAIN_THRUST = 0.6;
+const ROT_THRUST = 0.4;
+const REVERSE_THRUST = 0.3;
 
 
 class Rocket extends Sprite {
@@ -17,10 +17,12 @@ class Rocket extends Sprite {
         this.launched = true;
         this.launching = false;
 
+        this.cutEngines = false;
+
         this.points = [
             { x: 0, y: -this.height / 2 },
-            { x: -this.width / 2, y: this.height / 2 },
-            { x: this.width / 2, y: this.height / 2 }
+            { x: -this.width / 2, y: this.height / 2 - 5},
+            { x: this.width / 2, y: this.height / 2 - 5}
         ];
 
         this.rotspeed = 0;
@@ -123,9 +125,25 @@ class Rocket extends Sprite {
         smoke.postrender(ctx);
     }
 
+    renderPoint(ctx, p) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, 4, 4);
+        ctx.closePath();
+        ctx.fillStyle = '#ff0055';
+        ctx.fill();
+        ctx.restore();
+    }
+
     render(ctx) {
         super.render(ctx);
-        _.forIn(this.engines, (engine, name) => this.renderSmoke(ctx, engine.smoke));
+        // if (true) {
+        //     this.renderPoint(ctx, this.points[0]);
+        // }
+
+        if (!this.cutEngines) {
+            _.forIn(this.engines, (engine, name) => this.renderSmoke(ctx, engine.smoke));
+        }
     }
 }
 

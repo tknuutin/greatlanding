@@ -6,6 +6,7 @@ let { Rocket } = require('./Rocket');
 let { Renderer } = require('./Renderer');
 let { KeyboardTracker } = require('./Trackers');
 let { GameLogic } = require('./GameLogic');
+let { clampRot } = require('./Calc');
 let { getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('./Calc');
 
 const FPS = 30;
@@ -29,14 +30,12 @@ class ShapeManager {
         this.rocket = new Rocket({
             smokeImg: images['cloud.png'],
             img: images['rocket.png'],
-            x: 100, y: 100,
-            rotation: 0,
+            x: -100, y: 150,
+            rotation: 30,
             width: 114 / 4, height: 275 / 4,
             regX: 114 / 8, regY: (275 / 8) + 5  // Adding five so it looks like the approx central mass point
         });
         this.addShape(this.rocket);
-
-
     }
 
     updateShapePositions() {
@@ -52,6 +51,7 @@ class ShapeManager {
 
             if (shape.rotspeed) {
                 shape.rotation += shape.rotspeed;
+                shape.rotation = clampRot(shape.rotation);
             }
         });
     }
@@ -62,6 +62,10 @@ class ShapeManager {
 
     addShape(shape) {
         this.shapes.push(shape);
+    }
+
+    removeShape(shape) {
+        _.pull(this.shapes, shape);
     }
 
 }
@@ -82,7 +86,7 @@ class Game {
             }
         ]);
 
-        this.gameLogic = new GameLogic(this.shapeManager);
+        this.gameLogic = new GameLogic(opts.images, this.shapeManager);
         this.debug = {
             getShapes: () => { return []; }
         };
@@ -129,25 +133,24 @@ class Game {
         this.rocket = rocket;
     }
 
-    getUIState() {
-        let planet = this.shapeManager.planets[0];
-        return {
-            rocket: this.rocket,
-            landing: true,
-            lateral: getPlanetLateralSpeed(planet, this.rocket),
-            vertical: getPlanetVerticalSpeed(planet, this.rocket)
-        };
-    }
-
     logicUpdate() {
         if (this.record) {
             this.count++;
         }
 
         try {
-            let info = this.gameLogic.update();
-            if (info.stop) {
-                this.stopped = true;
+            if (!this.gameOver) {
+                this.gameLogic.update();
+                let info = this.gameLogic.analyze();
+                if (info.stop) {
+                    this.stop = true;
+                }
+
+                if (info.gameOver) {
+                    this.gameOver = true;
+                }
+
+                this.lastInfo = info;
             }
         }
         catch (e) {
@@ -174,13 +177,16 @@ class Game {
 
             if (loops) {
                 if (this.rocket) {
-                    updateUI(this.getUIState());
+                    updateUI(this.lastInfo);
                 }
 
                 let shapes = this.shapeManager.getShapes().concat(this.debug.getShapes());
-                this.renderer.render(shapes, {
+                let camera = {
                     x: this.rocket.x, y: this.rocket.y
-                });
+                };
+
+                this.renderer.updateEffects(shapes, this.lastInfo, this.rocket, camera);
+                this.renderer.render(shapes, camera);
                 // this.stopped = true;
             }
 
@@ -235,7 +241,7 @@ function startApp(images) {
     let renderer = new Renderer({
         background: images['spacebg.jpg'],
         canvas,
-        width: 500, height: 400
+        width: 700, height: 500
     });
 
     let game = new Game({
@@ -262,26 +268,26 @@ function createUpdateUI() {
     return (() => {
         let uix = document.getElementById('ui-x');
         let uiy = document.getElementById('ui-y');
-        let uispeedx = document.getElementById('ui-speedx');
-        let uispeedy = document.getElementById('ui-speedy');
+        let uispeed = document.getElementById('ui-speed');
         let uirotation = document.getElementById('ui-rotation');
         let landing = document.getElementById('ui-landing');
         let lateral = document.getElementById('ui-lateral');
         let vertical = document.getElementById('ui-vertical');
+        let langle = document.getElementById('ui-langle');
 
         return (state) => {
             let rocket = state.rocket;
             uix.innerHTML = Math.round(rocket.x);
             uiy.innerHTML = Math.round(rocket.y);
             let round = (num) => Math.round(num * 100) / 100;
-            uispeedx.innerHTML = round(rocket.move.v.x);
-            uispeedy.innerHTML = round(rocket.move.v.y);
+            uispeed.innerHTML = round(state.speed);
             uirotation.innerHTML = round(rocket.rotation);
             landing.innerHTML = state.landing + '';
 
             if (state.landing) {
                 lateral.innerHTML = round(state.lateral);
                 vertical.innerHTML = round(state.vertical);
+                langle.innerHTML = round(state.angle);
             }
             else {
                 lateral.innerHTML = '';
@@ -298,7 +304,8 @@ window.onload = function onAppLoad() {
     preloadImages(_.map([
         'rocket.png',
         'cloud.png',
-        'spacebg.jpg'
+        'spacebg.jpg',
+        'explosion.png'
     ])).then((images) => {
         startApp(_.reduce(images, (imageMap, value) => {
             imageMap[value.path] = value.img;

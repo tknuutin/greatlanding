@@ -9,6 +9,13 @@ function degs(rad) {
     return rad * (180 / Math.PI);
 }
 
+function clampRot(rot) {
+    if (rot < 0) {
+        return (rot % 360) + 360;
+    }
+    return rot % 360;
+}
+
 function rotateAroundPoint(rotation, rotationpoint, inPoint) {
     // http://stackoverflow.com/questions/3249083/is-this-how-rotation-about-a-point-is-done
     let point = {
@@ -50,5 +57,6 @@ module.exports = {
     rads, degs,
     rotateAroundPoint,
     distance,
-    getPlanetLateralSpeed, getPlanetVerticalSpeed
+    getPlanetLateralSpeed, getPlanetVerticalSpeed,
+    clampRot
 };

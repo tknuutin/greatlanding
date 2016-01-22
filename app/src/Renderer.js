@@ -1,5 +1,6 @@
 
 let _ = require('lodash');
+let Calc = require('./Calc');
 
 class Renderer {
     constructor(options = {}) {
@@ -47,6 +48,14 @@ class Renderer {
             }
         }
         ctx.translate(bgOffsetX, bgOffsetY);
+    }
+
+    updateEffects(shapes, info, rocket, camera) {
+        let planet = info.closestPlanet;
+        let distance = Calc.distance(planet.x, planet.y, camera.x, camera.y) - (planet.size / 2);
+        let newAlpha = Math.max(Math.min((300 - distance) / 200, 1), 0);
+        planet.darkAlpha = newAlpha
+        // console.log('distance', distance, newAlpha);
     }
 
     render(shapes, cameraPos) {

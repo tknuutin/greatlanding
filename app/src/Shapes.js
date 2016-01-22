@@ -6,8 +6,8 @@ class Shape {
         this.y = opts.y;
         this.fillStyle = opts.fillStyle;
         this.rotation = opts.rotation !== undefined ? opts.rotation: 0;
-        this.scaleX = 1;
-        this.scaleY = 1;
+        this.scaleX = opts.scaleX || 1;
+        this.scaleY = opts.scaleY || 1;
         this.regX = opts.regX || 0;
         this.regY = opts.regY ||0;
         this.alpha = 1;
@@ -68,11 +68,14 @@ class Sprite extends Shape {
 
         this.naturalWidth = this.img.width;
         this.naturalHeight = this.img.height;
+
+        this.cropX = 0;
+        this.cropY = 0;
     }
 
     render(ctx) {
         ctx.beginPath();
-        ctx.drawImage(this.img, 0, 0, this.naturalWidth, this.naturalHeight, 0, 0, this.width, this.height);
+        ctx.drawImage(this.img, this.cropX, this.cropY, this.naturalWidth, this.naturalHeight, 0, 0, this.width, this.height);
         ctx.closePath();
     }
 }

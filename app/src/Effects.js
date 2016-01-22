@@ -1,11 +1,64 @@
 
 let _ = require('lodash');
-let { Shape } = require('./Shapes');
+let { Shape, Sprite } = require('./Shapes');
 
 const MAX_GROW = 30;
 const MIN_SIZE = 10;
 const STARTUP_TIME = 100;
 const STOP_TIME = 100;
+
+class SpriteSheet extends Sprite {
+    constructor(opts = {}) {
+        super(opts);
+        this.cols = opts.cols;
+        this.rows = opts.rows;
+        this.frames = opts.frames || (this.cols * this.rows);
+        this.currentFrame = 0;
+        this.intervalId = null;
+        this.onEnded = opts.onEnded;
+
+        this.naturalWidth = this.width;
+        this.naturalHeight = this.height;
+    }
+
+    setFrame(inPos) {
+        let pos = inPos;
+        if (inPos > this.frames) {
+            pos = this.frames;
+        }
+
+        let column = pos % this.cols;
+        let row = Math.floor(pos / this.cols);
+
+        this.cropX = this.width * column;
+        this.cropY = this.height * row;
+        this.currentFrame = pos;
+    }
+
+    nextFrame(pos) {
+        this.setFrame(this.currentFrame + 1);
+    }
+
+    tick() {
+        if (this.currentFrame >= this.frames) {
+            clearInterval(this.intervalId);
+            if (this.onEnded) {
+                this.onEnded();
+            }
+        }
+        else {
+            this.nextFrame();
+        }
+    }
+
+    start() {
+        this.intervalId = setInterval(_.bind(this.tick, this), 33);
+    }
+
+    render(ctx) {
+        super.render(ctx);
+    }
+}
 
 class EngineSmoke extends Shape {
     constructor(opts = {}) {
@@ -92,4 +145,4 @@ class EngineSmoke extends Shape {
     }
 }
 
-module.exports = { EngineSmoke };
+module.exports = { EngineSmoke, SpriteSheet };

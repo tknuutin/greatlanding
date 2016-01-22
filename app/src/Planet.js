@@ -32,6 +32,8 @@ class Planet extends Shape {
         this.atmsColor = opts.atmsColor;
         this.atmsBegin = opts.atmsBegin;
         this._atms = null;
+
+        this.darkAlpha = 1;
     }
 
     prerenderAtmosphere() {
@@ -51,7 +53,7 @@ class Planet extends Shape {
         let darkCtx = darkCanvas.getContext('2d');
         let darkGrad = darkCtx.createRadialGradient(darkRadius, darkRadius, 1, darkRadius, darkRadius, darkRadius);
         darkGrad.addColorStop(1, 'rgba(0,0,0,0');
-        darkGrad.addColorStop(0.7, 'rgba(0,0,0,1');
+        darkGrad.addColorStop(0.75, 'rgba(0,0,0,1');
         darkGrad.addColorStop(0, 'rgba(0,0,0,1');
         drawCircleAndFill(darkCtx, darkSize, darkGrad);
 
@@ -65,9 +67,12 @@ class Planet extends Shape {
         let darkSize = this._atmsDarkSize - this.size;
         let atmsDark = this._atmsDark;
         let atms = this._atms;
+
+        ctx.save();
         ctx.translate(-darkSize / 2, -darkSize / 2);
+        ctx.globalAlpha = this.darkAlpha;
         ctx.drawImage(atmsDark, 0, 0, atmsDark.width, atmsDark.height, 0, 0, atmsDark.width, atmsDark.height);
-        ctx.translate(darkSize / 2, darkSize / 2);
+        ctx.restore();
 
         let atmsSize = this.atmsSize - this.size;
         ctx.translate(-atmsSize / 2, -atmsSize / 2);
