@@ -86,7 +86,9 @@ class GameLogic {
         info.angle = getRocketAngleToPlanet(closestPlanet, rocket);
 
         info = this.checkForCrash(info);
+        // console.log('info', info)
 
+        // info.stop = true;
         info.stop = this.shouldStop ? true : info.stop;
         return info;
     }

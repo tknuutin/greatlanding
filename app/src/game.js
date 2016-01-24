@@ -126,7 +126,7 @@ class Game {
 
                 this.renderer.updateEffects(shapes, this.lastInfo, this.rocket, camera);
                 this.renderer.render(shapes, camera);
-                // this.stopped = true;
+                this.stopped = this.lastInfo.stop;
             }
 
             // setTimeout(() => {

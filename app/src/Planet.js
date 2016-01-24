@@ -83,6 +83,14 @@ class Planet extends Shape {
         ctx.restore();
     }
 
+    getSurfacePoint(angle) {
+        let planetAngle = angle - 90;
+        return {
+            y: Math.sin(Calc.rads(planetAngle)) * (this.size / 2) + this.y,
+            x: Math.cos(Calc.rads(planetAngle)) * (this.size / 2) + this.x
+        };
+    }
+
     collidesWith(rocket) {
         let collision = _.some(rocket.getPoints(), (point) => {
             let px = point.x + rocket.x;

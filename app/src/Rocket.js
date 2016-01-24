@@ -13,12 +13,8 @@ class Rocket extends Sprite {
     constructor(opts) {
         super(opts);
 
-        // this.launched = false;
-        this.launched = true;
-        this.launching = false;
-
+        this.launched = false;
         this.isRocket = true;
-
         this.cutEngines = false;
 
         this.points = [
@@ -95,13 +91,14 @@ class Rocket extends Sprite {
 
     update() {
         if (this.engines.main.on) {
-            if (!this.launched && !this.launching) {
-                this.launching = true;
-                setTimeout(function() {
-                    this.launched = true;
-                    console.log('launched!');
-                    this.launching = false;
-                }, 500);
+            if (!this.launched) {
+                this.launched = true;
+                console.log('launched');
+                // setTimeout(function() {
+                //     this.launched = true;
+                //     console.log('launched!');
+                //     this.launching = false;
+                // }, 500);
             }
 
             this.applyForwardForce(-MAIN_THRUST);

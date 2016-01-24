@@ -46,6 +46,10 @@ function distancePoints(p1, p2) {
 }
 
 function getPlanetLateralSpeed(planet, rocket) {
+    if (V.magnitude(rocket.move.v) === 0) {
+        return 0;
+    }
+
     let planetToShip = V.sub(planet, rocket);
     let surfaceTangential = V.normals(planetToShip)[0];
     let lateral = V.project(rocket.move.v, surfaceTangential);
@@ -53,8 +57,12 @@ function getPlanetLateralSpeed(planet, rocket) {
 }
 
 function getPlanetVerticalSpeed(planet, rocket) {
+    if (V.magnitude(rocket.move.v) === 0) {
+        return 0;
+    }
+
     let planetToShip = V.sub(planet, rocket);
-    return V.project(rocket.move.v, planetToShip);;
+    return V.project(rocket.move.v, planetToShip);
 }
 
 module.exports = {

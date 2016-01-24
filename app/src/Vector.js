@@ -1,4 +1,21 @@
 
+
+// Due to floating point inaccuracy, sometimes vector math results would be off
+// a little - for example, after some angle calculation, Math.acos would be called
+// with 1.00000000002 or such. Round if difference from limits is not big.
+// I'm sure there's a better way to do this.
+const EPSILON = 0.00000000000001;
+
+function guardedAcos(inValue) {
+    let value = null;
+    if (inValue > 1 && (inValue - 1) < EPSILON) {
+        value = 1;
+    } else if (inValue < -1 && Math.abs(inValue + 1) > EPSILON) {
+        value = -1;
+    }
+    return Math.acos(value);
+}
+
 function normals(v) {
     return [{ x: -v.y, y: v.x }, { x: v.y, y: -v.x}];
 }
@@ -26,7 +43,7 @@ function mul(v1, scalar) {
     return {
         x: v1.x * scalar,
         y: v1.y * scalar
-    }
+    };
 }
 
 function unit(v) {
@@ -42,7 +59,8 @@ function dot(v1, v2) {
 }
 
 function angle(v1, v2) {
-    return Math.acos((dot(v1, v2)) / (magnitude(v1) * magnitude(v2)));
+    // let temp = ;
+    return guardedAcos(dot(v1, v2) / (magnitude(v1) * magnitude(v2)));
 }
 
 function project(v1, v2) {
