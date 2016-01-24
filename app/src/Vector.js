@@ -7,10 +7,10 @@
 const EPSILON = 0.00000000000001;
 
 function guardedAcos(inValue) {
-    let value = null;
-    if (inValue > 1 && (inValue - 1) < EPSILON) {
+    let value = inValue;
+    if (inValue > 1 && ((inValue - 1) < EPSILON)) {
         value = 1;
-    } else if (inValue < -1 && Math.abs(inValue + 1) > EPSILON) {
+    } else if ((inValue < -1) && (Math.abs(inValue + 1) < EPSILON)) {
         value = -1;
     }
     return Math.acos(value);
@@ -59,7 +59,6 @@ function dot(v1, v2) {
 }
 
 function angle(v1, v2) {
-    // let temp = ;
     return guardedAcos(dot(v1, v2) / (magnitude(v1) * magnitude(v2)));
 }
 
