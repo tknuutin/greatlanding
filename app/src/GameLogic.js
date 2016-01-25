@@ -44,7 +44,7 @@ class GameLogic {
         this.shouldStop = false;
     }
 
-    checkForCrash(info) {
+    checkForPlanetContact(info) {
         let rocket = this.rocket;
         let { lateral, vertical, angle } = info;
         let planet = CollisionManager.checkRocketCollision(this.rocket, this.shapeMgr.planets);
@@ -63,9 +63,11 @@ class GameLogic {
                 let finalRot = degs(V.angle(V.sub(planet, rocket), { x: 0, y: 5 }));
                 rocket.rotation = (planet.x > rocket.x) ? -(finalRot) : finalRot;
                 info.landed = true;
+                rocket.launched = false;
+                rocket.move.v = { x: 0, y: 0 };
             }
 
-            info.gameOver = true;
+            info.gameOver = planet.goalPlanet || info.crashed;
         }
         return info;
     }
@@ -85,7 +87,7 @@ class GameLogic {
         info.vertical = getPlanetVerticalSpeed(closestPlanet, rocket);
         info.angle = getRocketAngleToPlanet(closestPlanet, rocket);
 
-        info = this.checkForCrash(info);
+        info = this.checkForPlanetContact(info);
         info.stop = this.shouldStop ? true : info.stop;
         return info;
     }

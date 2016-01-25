@@ -4,9 +4,9 @@ let { Sprite } = require('./Shapes');
 let { EngineSmoke } = require('./Effects');
 let { rads, rotateAroundPoint } = require('./Calc');
 
-const MAIN_THRUST = 0.6;
-const ROT_THRUST = 0.4;
-const REVERSE_THRUST = 0.3;
+const MAIN_THRUST = 0.5;
+const ROT_THRUST = 0.3;
+const REVERSE_THRUST = 0.25;
 
 
 class Rocket extends Sprite {
@@ -73,12 +73,14 @@ class Rocket extends Sprite {
     }
 
     sendSignalToEngine(engine, isPowered) {
-        engine.on = isPowered;
-        if (isPowered) {
-            engine.smoke.start();
-        }
-        else {
-            engine.smoke.stop();
+        if (this.launched || engine === this.engines.main) {
+            engine.on = isPowered;
+            if (isPowered) {
+                engine.smoke.start();
+            }
+            else {
+                engine.smoke.stop();
+            }
         }
     }
 
