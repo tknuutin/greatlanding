@@ -19,7 +19,7 @@ const O_TOP_SECOND = 75;
 const COLUMN = 55;
 const ROW = 25;
 
-const SHOW_LANDING_INFO = 2500;
+const SHOW_LANDING_INFO = 2000;
 
 function round(num) {
     return Math.round(num * 100) / 100;
