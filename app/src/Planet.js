@@ -33,7 +33,7 @@ class Planet extends Shape {
         this.atmsBegin = opts.atmsBegin;
         this._atms = null;
         this.gravity = opts.gravity;
-        this.gravMaxDist = opts.gravMaxDist || 800;
+        this.gravMaxDist = opts.gravMaxDist || 1200;
 
         this.darkAlpha = 1;
     }

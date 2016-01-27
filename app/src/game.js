@@ -4,6 +4,7 @@ let { Renderer } = require('./Renderer');
 let { KeyboardTracker } = require('./Trackers');
 let { GameLogic } = require('./GameLogic');
 let { ShapeManager } = require('./ShapeManager');
+let { GameUI } = require('./GameUI');
 
 const FPS = 30;
 
@@ -12,15 +13,26 @@ class Game {
         this.shapes = [];
         this.renderer = opts.renderer;
 
+        this.ui = opts.ui;
+
         this.shapeManager = new ShapeManager(opts.images, [
             {
-                name: 'Home',
+                name: 'Base',
                 x: 200, y: 1700,
-                gravity: 10,
+                gravity: 13,
                 size: 3000, fillStyle: '#85889E',
-                atmsSize: 3500,
+                atmsSize: 3800,
                 // In RGB to avoid converting when we use a rgba string in a gradient
                 atmsColor: [179, 232, 255]
+            },
+            {
+                name: 'Target',
+                x: 3500, y: -100,
+                gravity: 12.5,
+                size: 2700,
+                fillStyle: '#9E8593',
+                atmsSize: 3400,
+                atmsColor: [255, 207, 253]
             }
         ]);
 
@@ -116,7 +128,7 @@ class Game {
 
             if (loops) {
                 if (this.rocket) {
-                    updateUI(this.lastInfo);
+                    this.ui.update(this.lastInfo);
                 }
 
                 let shapes = this.shapeManager.getShapes().concat(this.debug.getShapes());
@@ -126,7 +138,10 @@ class Game {
 
                 this.renderer.updateEffects(shapes, this.lastInfo, this.rocket, camera);
                 this.renderer.render(shapes, camera);
+                this.renderer.renderUI(this.ui.getShapes());
+
                 this.stopped = this.lastInfo.stop;
+                // this.stopped = true;
             }
 
             // setTimeout(() => {
@@ -170,12 +185,9 @@ function preloadImages(sources) {
     }));
 }
 
-function updateUI() {
-    // nothing here
-}
-
-function startApp(images) {
+function startApp(opts) {
     let canvas = document.getElementById('gamecanvas');
+    let { images, updateUI } = opts;
 
     let renderer = new Renderer({
         background: images['spacebg.jpg'],
@@ -184,7 +196,7 @@ function startApp(images) {
     });
 
     let game = new Game({
-        images, renderer
+        images, ui: new GameUI(), renderer
     });
 
     let kb = new KeyboardTracker({
@@ -237,18 +249,20 @@ function createUpdateUI() {
 }
 
 window.onload = function onAppLoad() {
-    updateUI = createUpdateUI();
-
     preloadImages(_.map([
         'rocket.png',
         'cloud.png',
         'spacebg.jpg',
         'explosion.png'
     ])).then((images) => {
-        startApp(_.reduce(images, (imageMap, value) => {
-            imageMap[value.path] = value.img;
-            return imageMap;
-        }, {}));
+
+        startApp({
+            images: _.reduce(images, (imageMap, value) => {
+                imageMap[value.path] = value.img;
+                return imageMap;
+            }, {}),
+            updateUI: createUpdateUI()
+        });
     })
 };
 

@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Great landing, guy!</title>
+    <link href='https://fonts.googleapis.com/css?family=Play:400,700' rel='stylesheet' type='text/css'>
     <script src='public/app.js'></script>
 </head>
 <body>
@@ -12,26 +13,57 @@
             min-width: 200px;
         }
 
+        body {
+            background-color: black;
+        }
+
+        h1, .ui {
+            font-family: 'Play', sans-serif;
+            color: gray;
+        }
+
         .ui p {
             margin-top: 3px;
             margin-bottom: 3px;
         }
+
+        #gamecanvas {
+            width: 700px;
+            height: 500px;
+            border: 1px solid gray;
+        }
     </style>
     <h1>Great landing, guy!</h1>
     <div>
-        <canvas id='gamecanvas' width='700' height='500' style='width: 700px; height: 500px; border: 1px solid black;'></canvas>
+        <canvas id='gamecanvas' width='700' height='500'></canvas>
     </div>
-    <div class='ui'>
-        <p><span>X: </span><span id='ui-x'></span></p>
-        <p><span>Y: </span><span id='ui-y'></span></p>
-        <p><span>speed: </span><span id='ui-speed'></span></p>
-        <p><span>rotation: </span><span id='ui-rotation'></span></p>
-    </div>
-    <div class='ui'>
-        <p><span>landing: </span><span id='ui-landing'></span></p>
-        <p><span>lateral speed: </span><span id='ui-lateral'></span></p>
-        <p><span>vertical speed: </span><span id='ui-vertical'></span></p>
-        <p><span>landing angle: </span><span id='ui-langle'></span></p>
-    </div>
+    <script src='stats.js'></script>
+    <script type="text/javascript">
+    (function() {
+        var enableFPS = false;
+        if (enableFPS) {
+            var stats = new Stats();
+            stats.domElement.setAttribute('id', 'fps-tracker');
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align bottom right
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.right = '0px';
+            stats.domElement.style.bottom = '0px';
+
+            document.body.appendChild(stats.domElement);
+
+            setInterval( function() {
+
+                stats.begin();
+
+                // your code goes here
+
+                stats.end();
+
+            }, 1000 / 60 );
+        }
+    })();
+    </script>
 </body>
 </html>

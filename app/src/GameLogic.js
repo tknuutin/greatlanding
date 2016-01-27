@@ -1,7 +1,8 @@
 
+let _ = require('lodash');
 let CollisionManager = require('./CollisionManager');
 let V = require('./Vector');
-let { degs } = require('./Calc');
+let { degs, distancePoints } = require('./Calc');
 let { getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('./Calc');
 let { SpriteSheet } = require('./Effects');
 
@@ -76,11 +77,18 @@ class GameLogic {
         let info = {};
         let { rocket, shapeMgr } = this;
 
-        let closestPlanet = shapeMgr.planets[0];
+        let closestPlanet = _.reduce(shapeMgr.planets, (result, planet) => {
+            let dist = distancePoints(rocket, planet);
+            if (dist < result.dist) {
+                result.planet = planet;
+            }
+            return result;
+        }, { dist: Number.POSITIVE_INFINITY });
 
         info.rocket = rocket;
         info.landing = true;
         info.closestPlanet = closestPlanet;
+        info.planets = shapeMgr.planets;
 
         info.speed = V.magnitude(rocket.move.v);
         info.lateral = getPlanetLateralSpeed(closestPlanet, rocket);

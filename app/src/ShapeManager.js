@@ -2,6 +2,7 @@
 let _ = require('lodash');
 let { Planet } = require('./Planet');
 let { Rocket } = require('./Rocket');
+let { Rectangle } = require('./Shapes');
 let { clampRot, distancePoints } = require('./Calc');
 let V = require('./Vector');
 
@@ -69,6 +70,9 @@ class ShapeManager {
         rocket.y = startPos.y;
 
         this.rocket = rocket;
+        this.addShape(new Rectangle({
+            x: 297, y: -297, width: 6, height: 6, fillStyle: '#ff0000'
+        }));
         this.addShape(rocket);
     }
 

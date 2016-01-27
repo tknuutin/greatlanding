@@ -16,6 +16,48 @@ function clampRot(rot) {
     return rot % 360;
 }
 
+function linesIntersect(line1StartX, line1StartY, line1EndX, line1EndY, line2StartX, line2StartY, line2EndX, line2EndY) {
+    // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and booleans for whether line segment 1 or line segment 2 contain the point
+    let denominator;
+    let a;
+    let b;
+    let numerator1;
+    let numerator2;
+    let result = {
+        x: null,
+        y: null,
+    };
+    denominator = ((line2EndY - line2StartY) * (line1EndX - line1StartX)) - ((line2EndX - line2StartX) * (line1EndY - line1StartY));
+    if (denominator === 0) {
+        return result;
+    }
+    a = line1StartY - line2StartY;
+    b = line1StartX - line2StartX;
+    numerator1 = ((line2EndX - line2StartX) * a) - ((line2EndY - line2StartY) * b);
+    numerator2 = ((line1EndX - line1StartX) * a) - ((line1EndY - line1StartY) * b);
+    a = numerator1 / denominator;
+    b = numerator2 / denominator;
+
+    // if we cast these lines infinitely in both directions, they intersect here:
+    result.x = line1StartX + (a * (line1EndX - line1StartX));
+    result.y = line1StartY + (a * (line1EndY - line1StartY));
+
+    // if line1 and line2 are segments, they intersect if both of the above are true
+    if ((a > 0 && a < 1) && (b > 0 && b < 1) ||
+        // also intersects if we hit any of the endpoints
+        (line1StartX === result.x && line1StartY === result.y) ||
+        (line1EndX === result.x && line1EndY === result.y) ||
+        (line2StartX === result.x && line2StartY === result.y) ||
+        (line2EndX === result.x && line2EndY === result.y)){
+
+        result.intersects = true;
+    }
+    else {
+        result.intersects = false;
+    }
+    return result;
+};
+
 function rotateAroundPoint(rotation, rotationpoint, inPoint) {
     // http://stackoverflow.com/questions/3249083/is-this-how-rotation-about-a-point-is-done
     let point = {
@@ -70,5 +112,6 @@ module.exports = {
     rotateAroundPoint,
     distance, distancePoints,
     getPlanetLateralSpeed, getPlanetVerticalSpeed,
-    clampRot
+    clampRot,
+    linesIntersect
 };

@@ -53,9 +53,17 @@ class Renderer {
     updateEffects(shapes, info, rocket, camera) {
         let planet = info.closestPlanet;
         let distance = Calc.distance(planet.x, planet.y, camera.x, camera.y) - (planet.size / 2);
-        let newAlpha = Math.max(Math.min((300 - distance) / 200, 1), 0);
-        planet.darkAlpha = newAlpha
-        // console.log('distance', distance, newAlpha);
+        let darkLimit = planet.size / 10;
+        let newAlpha = Math.max(Math.min((darkLimit - distance) / ((darkLimit / 3) * 2), 1), 0);
+        planet.darkAlpha = newAlpha;
+    }
+
+    renderShapes(shapes) {
+        _.forEach(shapes, (shape) => {
+            shape.prerender(this.ctx);
+            shape.render(this.ctx);
+            shape.postrender(this.ctx);
+        });
     }
 
     render(shapes, cameraPos) {
@@ -72,14 +80,7 @@ class Renderer {
         this.renderBG(cameraPos);
 
         ctx.translate(-cameraPos.x + (this.width / 2), -cameraPos.y + (this.height / 2));
-
-
-        _.forEach(shapes, (shape) => {
-            shape.prerender(this.ctx);
-            shape.render(this.ctx);
-            shape.postrender(this.ctx);
-        });
-
+        this.renderShapes(shapes);
         ctx.restore();
     }
 
@@ -89,6 +90,13 @@ class Renderer {
             console.log('FPS:', this.count);
             this.count = 0;
         }, 1000);
+    }
+
+    renderUI(shapes) {
+        let ctx = this.ctx;
+        ctx.save();
+        this.renderShapes(shapes);
+        ctx.restore();
     }
 }
 
