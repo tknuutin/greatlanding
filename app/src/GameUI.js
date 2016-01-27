@@ -2,6 +2,7 @@
 let _ = require('lodash');
 let { RoundedRectangle, TextNode } = require('./Shapes');
 let { Indicator, getIndicatorPos } = require('./Indicator');
+let { distancePoints } = require('./Calc');
 
 const UI_BG_COLOR = '#2E2E2E';
 const UI_BG_ALPHA = 0.9;
@@ -25,7 +26,7 @@ function round(num) {
 
 
 class GameUI {
-    constructor() {
+    constructor(targetPlanet) {
         this.box1 = new RoundedRectangle({
             x: 10, y: 10, name: 'upper',
             width: 200, height: 50,
@@ -93,12 +94,7 @@ class GameUI {
             return node;
         });
 
-        this.indicators = [
-            new Indicator({
-                point: { x: 300, y: -300 },
-                text: 'Target'
-            })
-        ];
+        this.indicators = [];
 
         this.shapes = _.reduce(this.indicators, (result, indicator) => {
             return result.concat(indicator.getShapes());
@@ -107,13 +103,23 @@ class GameUI {
         ]).concat(_.map(this.nodes, (node) => node.shape));
     }
 
+    createIndicator(point, text) {
+        let ind = new Indicator({
+            point: point,
+            text: text,
+            offset: 50
+        });
+        this.indicators.push(ind);
+        this.shapes = ind.getShapes().concat(this.shapes);
+    }
+
     update(info) {
         _.each(this.nodes, (node) => {
             node.shape.setText(node.getText(info));
         });
 
         _.each(this.indicators, (indicator) => {
-            indicator.update(getIndicatorPos(indicator, 700, 500, info.rocket));
+            indicator.update(getIndicatorPos(indicator, 700, 500, info.rocket), distancePoints(indicator.point, info.rocket));
         });
     }
 

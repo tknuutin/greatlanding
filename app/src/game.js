@@ -8,6 +8,39 @@ let { GameUI } = require('./GameUI');
 
 const FPS = 30;
 
+const MAPS = [
+    {
+        planets: [
+            {
+                name: 'Base',
+                x: 200, y: 1700,
+                gravity: 13,
+                size: 3000, fillStyle: '#85889E',
+                atmsSize: 3800,
+                isBase: true,
+                // In RGB to avoid converting when we use a rgba string in a gradient
+                atmsColor: [179, 232, 255]
+            },
+            {
+                name: 'Target',
+                isTarget: true,
+                x: 4500, y: 5000,
+                gravity: 12.5,
+                size: 2700,
+                fillStyle: '#9E8593',
+                atmsSize: 3400,
+                atmsColor: [255, 207, 253]
+            }
+        ],
+
+        baseWidth: 5,
+        basePlanetAngle: 340,
+
+        targetPlanetAngle: 170,
+        targetWidth: 5
+    }
+];
+
 class Game {
     constructor(opts) {
         this.shapes = [];
@@ -15,26 +48,21 @@ class Game {
 
         this.ui = opts.ui;
 
-        this.shapeManager = new ShapeManager(opts.images, [
-            {
-                name: 'Base',
-                x: 200, y: 1700,
-                gravity: 13,
-                size: 3000, fillStyle: '#85889E',
-                atmsSize: 3800,
-                // In RGB to avoid converting when we use a rgba string in a gradient
-                atmsColor: [179, 232, 255]
-            },
-            {
-                name: 'Target',
-                x: 3500, y: -100,
-                gravity: 12.5,
-                size: 2700,
-                fillStyle: '#9E8593',
-                atmsSize: 3400,
-                atmsColor: [255, 207, 253]
-            }
-        ]);
+        let gameMap = MAPS[0];  // Start with first map;
+
+        this.shapeManager = new ShapeManager(opts.images, gameMap);
+
+        let baseAngle = gameMap.basePlanetAngle;
+        let targetAngle = gameMap.targetPlanetAngle;
+        let { baseWidth, targetWidth } = gameMap;
+
+        let basePlanet = _.find(this.shapeManager.planets, (planet) => planet.isBase);
+        basePlanet.paintSurface(baseAngle - baseWidth / 2, baseAngle + baseWidth / 2, '#7DD4AF');
+
+        let targetPlanet = _.find(this.shapeManager.planets, (planet) => planet.isTarget);
+        targetPlanet.paintSurface(targetAngle - targetWidth / 2, targetAngle + targetWidth / 2, '#D47D83');
+
+        this.ui.createIndicator(targetPlanet.getSurfacePoint(targetAngle), 'Target');
 
         this.gameLogic = new GameLogic(opts.images, this.shapeManager);
         this.debug = {
@@ -48,7 +76,6 @@ class Game {
 
         if (this.record) {
             setInterval(() => {
-                // console.log('logic:', this.count);
                 this.count = 0;
             }, 1000);
         }

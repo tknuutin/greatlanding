@@ -6,7 +6,7 @@ let { Shape, TextNode } = require('./Shapes');
 
 const MARGIN = 40;
 
-function getIndicatorPos(indicator, screenW, screenH, cameraPos) {
+function getIndicatorBorderPoint(indicator, screenW, screenH, cameraPos) {
     let x = 0;
     let y = 0;
 
@@ -35,6 +35,21 @@ function getIndicatorPos(indicator, screenW, screenH, cameraPos) {
     return { x, y };
 }
 
+function getIndicatorPos(indicator, screenW, screenH, cameraPos) {
+    let target = indicator.point;
+    let onScreen = (
+        (Math.abs(target.x - cameraPos.x) <= (screenW / 2 - MARGIN)) &&
+        (Math.abs(target.y - cameraPos.y) <= (screenH / 2 - MARGIN))
+    );
+
+    if (!onScreen) {
+        return getIndicatorBorderPoint(indicator, screenW, screenH, cameraPos);
+    }
+
+    let screen = V.sub(cameraPos, { x: screenW / 2, y: screenH / 2 });
+    return V.sub(target, screen);
+}
+
 class IndicatorShape extends Shape {
     constructor(opts) {
         super(opts);
@@ -43,7 +58,7 @@ class IndicatorShape extends Shape {
     }
 
     render(ctx) {
-        ctx.translate(0, this.height / 2);
+        ctx.translate(-this.width / 2, this.height / 2);
         let h = this.height;
         let w = this.width;
         ctx.beginPath();
@@ -56,8 +71,10 @@ class IndicatorShape extends Shape {
 }
 
 class Indicator {
-    constructor({ point, text }) {
+    constructor({ point, text, offset }) {
         this.point = point;
+        this.text = text;
+        this.textOffset = offset;
 
         this.lines = new IndicatorShape({
             x: 0, y: 0,
@@ -75,11 +92,28 @@ class Indicator {
         });
     }
 
-    update(pos) {
+    update(pos, distance) {
         this.lines.x = pos.x;
         this.lines.y = pos.y;
-        this.textNode.x = pos.x;
+        this.textNode.x = pos.x - this.textOffset;
         this.textNode.y = pos.y + this.lines.height;
+
+        this.textNode.setText(this.text + ' (' + Math.round(distance / 10) + 'km)');
+
+        let alphaUpper = 400;
+        let alphaLower = 200;
+
+        let alpha = 1
+        if (distance < alphaUpper) {
+            if (distance < alphaLower) {
+                alpha = 0;
+            } else {
+                alpha = (distance - alphaLower) / alphaLower;
+            }
+        }
+
+        this.textNode.alpha = alpha;
+        this.lines.alpha = alpha;
     }
 
     getShapes() {

@@ -1,7 +1,7 @@
 
 let _ = require('lodash');
 let { Shape } = require('./Shapes');
-let Calc = require('./Calc');
+let { rads, distance } = require('./Calc');
 
 function createTemporaryCanvas(size) {
     let canvas = document.createElement('canvas');
@@ -25,6 +25,11 @@ function drawCircleAndFill(ctx, size, color) {
 class Planet extends Shape {
     constructor(opts = {}) {
         super(opts);
+
+        // These are dumb
+        this.isTarget = opts.isTarget;
+        this.isBase = opts.isBase;
+
         this.size = opts.size;
         this.regX = this.size / 2;
         this.regY = this.size / 2;
@@ -34,6 +39,7 @@ class Planet extends Shape {
         this._atms = null;
         this.gravity = opts.gravity;
         this.gravMaxDist = opts.gravMaxDist || 1200;
+        this.paints = [];
 
         this.darkAlpha = 1;
     }
@@ -86,26 +92,59 @@ class Planet extends Shape {
     getSurfacePoint(angle) {
         let planetAngle = angle - 90;
         return {
-            y: Math.sin(Calc.rads(planetAngle)) * (this.size / 2) + this.y,
-            x: Math.cos(Calc.rads(planetAngle)) * (this.size / 2) + this.x
+            y: Math.sin(rads(planetAngle)) * (this.size / 2) + this.y,
+            x: Math.cos(rads(planetAngle)) * (this.size / 2) + this.x
         };
+    }
+
+    paintSurface(start, end, color) {
+        this.paints.push({
+            start, end, color
+        })
     }
 
     collidesWith(rocket) {
         let collision = _.some(rocket.getPoints(), (point) => {
             let px = point.x + rocket.x;
             let py = point.y + rocket.y;
-            return Calc.distance(px, py, this.x, this.y) <= (this.size / 2);
+            return distance(px, py, this.x, this.y) <= (this.size / 2);
         });
         return collision;
+    }
+
+    renderPaints(ctx) {
+        let { size } = this;
+        _.each(this.paints, ({ start, end, color }) => {
+            ctx.save();
+            ctx.beginPath();
+            let paintStart = rads(start - 90);
+            let paintStop = rads(end - 90);
+            ctx.arc(size / 2, size / 2, size / 2, paintStart, paintStop, false);
+            // ctx.arc(size / 2, size / 2, size / 2, paintStop, paintStart, true);
+            // ctx.closePath();
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+            ctx.restore();
+        })
     }
 
     render(ctx) {
         if (!this._atms) {
             this.prerenderAtmosphere();
         }
+        ctx.save();
         this.renderAtmosphere(ctx);
         drawCircle(ctx, this.size);
+        ctx.restore();
+    }
+
+    postrender(ctx) {
+        super.postrender(ctx);
+
+        this.prerender(ctx);
+        this.renderPaints(ctx);
+        ctx.restore();
     }
 }
 

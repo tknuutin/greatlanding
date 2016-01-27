@@ -44,10 +44,10 @@ function getRocketStartPos(rocket, angle, planet) {
 }
 
 class ShapeManager {
-    constructor(images, planets) {
+    constructor(images, gameMap) {
         this.shapes = [];
 
-        this.planets = _.map(planets, (planetDef) => {
+        this.planets = _.map(gameMap.planets, (planetDef) => {
             let planet = new Planet(planetDef);
             this.addShape(planet);
             return planet;
