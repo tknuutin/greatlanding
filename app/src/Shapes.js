@@ -15,6 +15,7 @@ class Shape {
         this.regY = opts.regY || 0;
         this.lineWidth = opts.lineWidth;
         this.alpha = opts.alpha !== undefined ? opts.alpha : 1;
+        this.visible = true;
     }
 
     prerender(ctx) {

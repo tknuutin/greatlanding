@@ -68,7 +68,7 @@ class GameLogic {
                 rocket.move.v = { x: 0, y: 0 };
             }
 
-            info.gameOver = planet.goalPlanet || info.crashed;
+            info.gameOver = planet.isTarget || info.crashed;
         }
         return info;
     }
@@ -77,24 +77,19 @@ class GameLogic {
         let info = {};
         let { rocket, shapeMgr } = this;
 
-        let closestPlanet = _.reduce(shapeMgr.planets, (result, planet) => {
-            let dist = distancePoints(rocket, planet);
-            if (dist < result.dist) {
-                result.planet = planet;
-            }
-            return result;
-        }, { dist: Number.POSITIVE_INFINITY });
+        let closestPlanetInfo = shapeMgr.getClosestPlanet(rocket);
+        let closestPlanet = closestPlanetInfo.planet;
 
         info.rocket = rocket;
         info.landing = true;
         info.closestPlanet = closestPlanet;
+        info.closestPlanetDistance = closestPlanetInfo.dist;
         info.planets = shapeMgr.planets;
 
         info.speed = V.magnitude(rocket.move.v);
         info.lateral = getPlanetLateralSpeed(closestPlanet, rocket);
         info.vertical = getPlanetVerticalSpeed(closestPlanet, rocket);
         info.angle = getRocketAngleToPlanet(closestPlanet, rocket);
-
         info = this.checkForPlanetContact(info);
         info.stop = this.shouldStop ? true : info.stop;
         return info;

@@ -28,8 +28,6 @@ function getGravityStrenghtForPoint(point, planet) {
 }
 // ----------------------------------------------------
 
-const START_ROT = 340;
-
 const ROCKET_W = 57;
 const ROCKET_H = 137.5;
 const ROCKET_H_OFFSET = 5;
@@ -57,7 +55,7 @@ class ShapeManager {
             smokeImg: images['cloud.png'],
             img: images['rocket.png'],
             x: 0, y: 0,
-            rotation: START_ROT,
+            rotation: gameMap.basePlanetAngle,
             width: ROCKET_W / 2, height: ROCKET_H / 2,
 
             regX: ROCKET_W / 4,
@@ -65,21 +63,29 @@ class ShapeManager {
             regY: (ROCKET_H / 4) + ROCKET_H_OFFSET
         });
 
-        let startPos = getRocketStartPos(rocket, START_ROT, this.planets[0]);
+        let startPos = getRocketStartPos(rocket, gameMap.basePlanetAngle, _.find(this.planets, (planet) => planet.isBase));
         rocket.x = startPos.x;
         rocket.y = startPos.y;
 
         this.rocket = rocket;
-        this.addShape(new Rectangle({
-            x: 297, y: -297, width: 6, height: 6, fillStyle: '#ff0000'
-        }));
         this.addShape(rocket);
     }
 
-    applyGravity(shape) {
-        let planet = this.planets[0];
-        let strength = getGravityStrenghtForPoint(shape, planet);
+    getClosestPlanet(rocket) {
+        return _.reduce(this.planets, (result, planet) => {
+            let dist = distancePoints(rocket, planet);
+            if (dist < result.dist) {
+                result.dist = dist;
+                result.planet = planet;
+            }
+            return result;
+        }, { dist: Number.POSITIVE_INFINITY });
+    }
 
+    applyGravity(shape) {
+        let planet = this.getClosestPlanet(shape).planet;  // Lazy I know
+
+        let strength = getGravityStrenghtForPoint(shape, planet);
         let planetDirection = V.unit(V.sub(planet, shape));
 
         let gravity = V.mul(planetDirection, strength);

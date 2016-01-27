@@ -60,9 +60,11 @@ class Renderer {
 
     renderShapes(shapes) {
         _.forEach(shapes, (shape) => {
-            shape.prerender(this.ctx);
-            shape.render(this.ctx);
-            shape.postrender(this.ctx);
+            if (shape.visible) {
+                shape.prerender(this.ctx);
+                shape.render(this.ctx);
+                shape.postrender(this.ctx);
+            }
         });
     }
 
