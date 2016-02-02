@@ -25,7 +25,7 @@ const MAPS = [
                 name: 'Target',
                 isTarget: true,
                 x: 4500, y: 5000,
-                gravity: 12.5,
+                gravity: 10.5,
                 size: 2700,
                 fillStyle: '#9E8593',
                 atmsSize: 3400,

@@ -8,6 +8,8 @@ const MAIN_THRUST = 0.5;
 const ROT_THRUST = 0.3;
 const REVERSE_THRUST = 0.25;
 
+const START_FUEL = 250;
+
 
 class Rocket extends Sprite {
     constructor(opts) {
@@ -16,6 +18,8 @@ class Rocket extends Sprite {
         this.launched = false;
         this.isRocket = true;
         this.cutEngines = false;
+
+        this.fuel = START_FUEL;
 
         this.points = [
             { x: 0, y: -this.height / 2 },
@@ -73,12 +77,16 @@ class Rocket extends Sprite {
     }
 
     sendSignalToEngine(engine, isPowered) {
-        if (this.launched || engine === this.engines.main) {
+        if ((this.launched || engine === this.engines.main) &&
+            !(this.fuel <= 0 && isPowered)) {
+
             engine.on = isPowered;
             if (isPowered) {
+                if (engine === this.engines.reverse1) {
+                    console.log(this.fuel, isPowered);
+                }
                 engine.smoke.start();
-            }
-            else {
+            } else {
                 engine.smoke.stop();
             }
         }
@@ -91,27 +99,40 @@ class Rocket extends Sprite {
         this.move.v.y += newThrust.y;
     }
 
+    getFuel() {
+        return (this.fuel / START_FUEL) * 100;
+    }
+
+    useFuel(amount) {
+        this.fuel = Math.max(0, this.fuel - amount);
+        if (this.fuel <= 0) {
+            this.sendSignalToEngine(this.engines.main, false);
+            this.sendSignalToEngine(this.engines.reverse1, false);
+            this.sendSignalToEngine(this.engines.reverse2, false);
+            this.sendSignalToEngine(this.engines.left, false);
+            this.sendSignalToEngine(this.engines.right, false);
+        }
+    }
+
     update() {
         if (this.engines.main.on) {
             if (!this.launched) {
                 this.launched = true;
-                console.log('launched');
-                // setTimeout(function() {
-                //     this.launched = true;
-                //     console.log('launched!');
-                //     this.launching = false;
-                // }, 500);
             }
 
+            this.useFuel(MAIN_THRUST);
             this.applyForwardForce(-MAIN_THRUST);
         }
         if (this.engines.reverse1.on) {
+            this.useFuel(REVERSE_THRUST);
             this.applyForwardForce(REVERSE_THRUST);
         }
         if (this.engines.left.on) {
+            this.useFuel(ROT_THRUST);
             this.rotspeed += ROT_THRUST;
         }
         if (this.engines.right.on) {
+            this.useFuel(ROT_THRUST);
             this.rotspeed -= ROT_THRUST;
         }
     }
@@ -138,9 +159,6 @@ class Rocket extends Sprite {
 
     render(ctx) {
         super.render(ctx);
-        // if (true) {
-        //     this.renderPoint(ctx, this.points[0]);
-        // }
 
         if (!this.cutEngines) {
             _.forIn(this.engines, (engine, name) => this.renderSmoke(ctx, engine.smoke));

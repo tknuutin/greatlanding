@@ -63,12 +63,24 @@ class ShapeManager {
             regY: (ROCKET_H / 4) + ROCKET_H_OFFSET
         });
 
-        let startPos = getRocketStartPos(rocket, gameMap.basePlanetAngle, _.find(this.planets, (planet) => planet.isBase));
+        this.gameMap = gameMap;
+        this.rocket = rocket;
+        this.setRocketPosition();
+        this.addShape(rocket);
+    }
+
+    setRocketStartPosition() {
+        let angle = this.gameMap.basePlanetAngle
+        let planet = _.find(this.planets, (planet) => planet.isBase);
+        let startPos = getRocketStartPos(this.rocket, angle, planet);
         rocket.x = startPos.x;
         rocket.y = startPos.y;
+    }
 
-        this.rocket = rocket;
-        this.addShape(rocket);
+    reset() {
+        this.setRocketPosition();
+        this.rocket.move.v = { x: 0, y: 0 };
+        this.rocket.launched = false;
     }
 
     getClosestPlanet(rocket) {

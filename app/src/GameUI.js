@@ -3,23 +3,8 @@ let _ = require('lodash');
 let { RoundedRectangle, TextNode } = require('./Shapes');
 let { Indicator, getIndicatorPos } = require('./Indicator');
 let { distancePoints } = require('./Calc');
-
-const UI_BG_COLOR = '#2E2E2E';
-const UI_BG_ALPHA = 0.9;
-
-const UI_TEXT_COLOR = '#A8A8A8';
-const UI_TEXT_STROKE = '#000'
-// const UI_TEXT_COLOR = '#ff0055';
-const UI_TEXT_SIZE = 14;
-const UI_FONT = 'Play';
-
-const O_LEFT = 15;
-const O_TOP = 15;
-const O_TOP_SECOND = 75;
-const COLUMN = 55;
-const ROW = 25;
-
-const SHOW_LANDING_INFO = 2000;
+let GameConfig = require('./GameConfig');
+let UI = GameConfig.UI;
 
 function round(num) {
     return Math.round(num * 100) / 100;
@@ -30,8 +15,8 @@ class GameUI {
         this.box1 = new RoundedRectangle({
             x: 10, y: 10, name: 'upper',
             width: 200, height: 50,
-            fillStyle: UI_BG_COLOR,
-            alpha: UI_BG_ALPHA
+            fillStyle: UI.BG_COLOR,
+            alpha: UI.BG_ALPHA
         });
 
         this.landingInfoDisplayed = true;
@@ -39,62 +24,80 @@ class GameUI {
         this.box2 = new RoundedRectangle({
             x: 10, y: 70, name: 'lower',
             width: 200, height: 75,
-            fillStyle: UI_BG_COLOR,
-            alpha: UI_BG_ALPHA
+            fillStyle: UI.BG_COLOR,
+            alpha: UI.BG_ALPHA
         });
 
         this.nodes = _.map([
             {
-                x: O_LEFT, y: O_TOP,
+                x: UI.O_LEFT, y: UI.O_TOP,
                 getText: (info) => {
                     return 'X: ' + Math.round(info.rocket.x);
                 }
             },
             {
-                x: O_LEFT + COLUMN, y: O_TOP,
+                x: UI.O_LEFT + UI.COLUMN, y: UI.O_TOP,
                 getText: (info) => {
                     return 'Y: ' + Math.round(info.rocket.y);
                 }
             },
             {
-                x: O_LEFT + (COLUMN * 2), y: O_TOP,
+                x: UI.O_LEFT + (UI.COLUMN * 2), y: UI.O_TOP,
                 getText: (info) => {
                     return 'Speed: ' + round(info.speed);
                 }
             },
             {
-                x: O_LEFT, y: O_TOP + ROW,
+                x: UI.O_LEFT, y: UI.O_TOP + UI.ROW,
                 getText: (info) => {
                     return 'Rotation: ' + round(info.rocket.rotation);
                 }
             },
             {
-                x: O_LEFT, y: O_TOP_SECOND,
+                x: UI.O_LEFT + (UI.COLUMN * 2), y: UI.O_TOP + UI.ROW,
+                getText: (info) => {
+                    return 'Fuel: ' + Math.round(info.rocket.getFuel()) + '%';
+                },
+                isCritical: (info) => {
+                    return info.rocket.getFuel() <= 0;
+                }
+            },
+            {
+                x: UI.O_LEFT, y: UI.O_TOP_SECOND,
                 showCloseToPlanet: true,
                 getText: (info) => {
                     return 'Lateral speed: ' + round(info.lateral);
+                },
+                isCritical: (info) => {
+                    return info.lateral >= GameConfig.LIMIT_LATERAL;
                 }
             },
             {
-                x: O_LEFT, y: O_TOP_SECOND + ROW,
+                x: UI.O_LEFT, y: UI.O_TOP_SECOND + UI.ROW,
                 showCloseToPlanet: true,
                 getText: (info) => {
                     return 'Vertical speed: ' + round(info.vertical);
+                },
+                isCritical: (info) => {
+                    return info.vertical >= GameConfig.LIMIT_VERTICAL;
                 }
             },
             {
-                x: O_LEFT, y: O_TOP_SECOND + (ROW * 2),
+                x: UI.O_LEFT, y: UI.O_TOP_SECOND + (UI.ROW * 2),
                 showCloseToPlanet: true,
                 getText: (info) => {
                     return 'Landing angle: ' + round(info.angle);
+                },
+                isCritical: (info) => {
+                    return info.angle >= GameConfig.LIMIT_ANGLE;
                 }
             }
         ], (node) => {
             node.shape = new TextNode({
                 x: node.x, y: node.y,
-                fillStyle: UI_TEXT_COLOR,
-                fontFamily: UI_FONT,
-                fontSize: UI_TEXT_SIZE
+                fillStyle: UI.TEXT_COLOR,
+                fontFamily: UI.FONT,
+                fontSize: UI.TEXT_SIZE
             });
             return node;
         });
@@ -127,10 +130,17 @@ class GameUI {
     }
 
     update(info) {
-        this.setLandingInfoDisplayed(info.closestPlanetDistance < SHOW_LANDING_INFO);
+        this.setLandingInfoDisplayed(info.closestPlanetDistance < GameConfig.SHOW_LANDING_INFO);
 
         _.each(this.nodes, (node) => {
             node.shape.setText(node.getText(info));
+            if (node.isCritical) {
+                if (node.isCritical(info)) {
+                    node.shape.fillStyle = UI.WARN_COLOR;
+                } else {
+                    node.shape.fillStyle = UI.TEXT_COLOR;
+                }
+            }
         });
 
         _.each(this.indicators, (indicator) => {
