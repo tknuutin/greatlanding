@@ -96,6 +96,7 @@ class ShapeManager {
         let planetDirection = V.unit(V.sub(planet, shape));
 
         let gravity = V.mul(planetDirection, strength);
+
         shape.move.v.x += gravity.x;
         shape.move.v.y += gravity.y;
     }
