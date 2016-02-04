@@ -104,11 +104,14 @@ class GameUI {
 
         this.indicators = [];
 
-        this.shapes = _.reduce(this.indicators, (result, indicator) => {
-            return result.concat(indicator.getShapes());
-        }, []).concat([
+        this.shapes = [
             this.box1, this.box2
-        ]).concat(_.map(this.nodes, (node) => node.shape));
+        ].concat(_.map(this.nodes, (node) => node.shape));
+    }
+
+    reset() {
+        _.each(this.indicators, this.shapes.remove);
+        this.setLandingInfoDisplayed(true);
     }
 
     createIndicator(point, text) {

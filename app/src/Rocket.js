@@ -82,9 +82,6 @@ class Rocket extends Sprite {
 
             engine.on = isPowered;
             if (isPowered) {
-                if (engine === this.engines.reverse1) {
-                    console.log(this.fuel, isPowered);
-                }
                 engine.smoke.start();
             } else {
                 engine.smoke.stop();

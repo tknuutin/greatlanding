@@ -36,15 +36,14 @@ function makeExplosion(img, position, onEnded) {
 class GameLogic {
     constructor(images, shapeMgr) {
         this.images = images;
-        this.rocket = shapeMgr.rocket;
         this.shapeMgr = shapeMgr;
         this.shouldStop = false;
     }
 
     checkForPlanetContact(info) {
-        let rocket = this.rocket;
+        let rocket = info.rocket;
         let { lateral, vertical, angle } = info;
-        let planet = CollisionManager.checkRocketCollision(this.rocket, this.shapeMgr.planets);
+        let planet = CollisionManager.checkRocketCollision(info.rocket, info.planets);
         if (planet) {
             if (Math.abs(lateral) > LIMIT_LATERAL || vertical > LIMIT_VERTICAL || angle > LIMIT_ANGLE) {
                 info.crashed = true;
@@ -71,7 +70,8 @@ class GameLogic {
 
     analyze() {
         let info = {};
-        let { rocket, shapeMgr } = this;
+        let { shapeMgr } = this;
+        let rocket = shapeMgr.getRocket();
 
         let closestPlanetInfo = shapeMgr.getClosestPlanet(rocket);
         let closestPlanet = closestPlanetInfo.planet;

@@ -4,72 +4,25 @@ let { Renderer } = require('./Renderer');
 let { KeyboardTracker } = require('./Trackers');
 let { GameLogic } = require('./GameLogic');
 let { ShapeManager } = require('./ShapeManager');
+let { GameInitializer, MAPS } = require('./GameInitializer');
 let { GameUI } = require('./GameUI');
 
 const FPS = 30;
 
-const MAPS = [
-    {
-        planets: [
-            {
-                name: 'Base',
-                x: 200, y: 1700,
-                gravity: 13,
-                size: 3000, fillStyle: '#85889E',
-                atmsSize: 3800,
-                isBase: true,
-                // In RGB to avoid converting when we use a rgba string in a gradient
-                atmsColor: [179, 232, 255]
-            },
-            {
-                name: 'Target',
-                isTarget: true,
-                x: 4500, y: 5000,
-                gravity: 10.5,
-                size: 2700,
-                fillStyle: '#9E8593',
-                atmsSize: 3400,
-                atmsColor: [255, 207, 253]
-            }
-        ],
 
-        baseWidth: 5,
-        basePlanetAngle: 340,
-
-        targetPlanetAngle: 170,
-        targetWidth: 5
-    }
-];
 
 class Game {
     constructor(opts) {
         this.shapes = [];
         this.renderer = opts.renderer;
+        this.mapNum = 0;
 
         this.ui = opts.ui;
 
-        let gameMap = MAPS[0];  // Start with first map;
-
-        this.shapeManager = new ShapeManager(opts.images, gameMap);
-
-        let baseAngle = gameMap.basePlanetAngle;
-        let targetAngle = gameMap.targetPlanetAngle;
-        let { baseWidth, targetWidth } = gameMap;
-
-        let basePlanet = _.find(this.shapeManager.planets, (planet) => planet.isBase);
-        basePlanet.paintSurface(baseAngle - baseWidth / 2, baseAngle + baseWidth / 2, '#7DD4AF');
-
-        let targetPlanet = _.find(this.shapeManager.planets, (planet) => planet.isTarget);
-        targetPlanet.paintSurface(targetAngle - targetWidth / 2, targetAngle + targetWidth / 2, '#D47D83');
-
-        this.ui.createIndicator(targetPlanet.getSurfacePoint(targetAngle), 'Target');
-
-        this.gameLogic = new GameLogic(opts.images, this.shapeManager);
-        this.debug = {
-            getShapes: () => {
-                return [];
-            }
-        };
+        let shapeMgr = new ShapeManager(opts.images);
+        this.gameLogic = new GameLogic(opts.images, shapeMgr);
+        this.initializer = new GameInitializer();
+        this.shapeManager = shapeMgr;
 
         this.record = false;
         this.count = 0;
@@ -80,36 +33,57 @@ class Game {
             }, 1000);
         }
 
-        let rocket = this.shapeManager.rocket;
-        this.keyInputs = {
-            onForwardDown: () => {
+        this.keyInputs = _.chain({
+            onForwardDown: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.main, true);
             },
-            onForwardUp: () => {
+            onForwardUp: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.main, false);
             },
-            onReverseDown: () => {
+            onReverseDown: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.reverse1, true);
                 rocket.sendSignalToEngine(rocket.engines.reverse2, true);
             },
-            onReverseUp: () => {
+            onReverseUp: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.reverse1, false);
                 rocket.sendSignalToEngine(rocket.engines.reverse2, false);
             },
-            onRightDown: () => {
+            onRightDown: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.left, true);
             },
-            onRightUp: () => {
+            onRightUp: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.left, false);
             },
-            onLeftDown: () => {
+            onLeftDown: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.right, true);
             },
-            onLeftUp: () => {
+            onLeftUp: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.right, false);
             }
-        };
-        this.rocket = rocket;
+        }).reduce((result, func, key) => {
+            result[key] = () => func(shapeMgr.getRocket());
+            return result;
+        }, {}).merge({
+            onSpace: () => {
+                this.reset();
+                this.init();
+                this.doneWithReset = Date.now();
+            }
+        }).value();
+
+        this.init();
+
+    }
+
+    reset() {
+        this.shapeManager.reset();
+        this.ui.reset();
+    }
+
+    init() {
+        let mapInfo = this.initializer.initMap(MAPS[this.mapNum]);
+        this.shapeManager.initMap(mapInfo.planets, mapInfo.rocketDef);
+        this.ui.createIndicator(mapInfo.targetPoint, 'Target');
     }
 
     logicUpdate() {
@@ -154,26 +128,22 @@ class Game {
             }
 
             if (loops) {
-                if (this.rocket) {
+                let rocket = this.shapeManager.getRocket();
+                if (rocket) {
                     this.ui.update(this.lastInfo);
                 }
 
-                let shapes = this.shapeManager.getShapes().concat(this.debug.getShapes());
-                let camera = {
-                    x: this.rocket.x, y: this.rocket.y
-                };
+                let shapes = this.shapeManager.getShapes();
+                let camera = rocket ? {
+                    x: rocket.x, y: rocket.y
+                } : { x: 0, y: 0 };
 
-                this.renderer.updateEffects(shapes, this.lastInfo, this.rocket, camera);
+                this.renderer.updateEffects(shapes, this.lastInfo, rocket, camera);
                 this.renderer.render(shapes, camera);
                 this.renderer.renderUI(this.ui.getShapes());
 
                 this.stopped = this.lastInfo.stop;
-                // this.stopped = true;
             }
-
-            // setTimeout(() => {
-            //     this.stopped = true;
-            // }, 4000);
         };
     }
 
@@ -214,7 +184,7 @@ function preloadImages(sources) {
 
 function startApp(opts) {
     let canvas = document.getElementById('gamecanvas');
-    let { images, updateUI } = opts;
+    let { images } = opts;
 
     let renderer = new Renderer({
         background: images['spacebg.jpg'],
@@ -236,7 +206,8 @@ function startApp(opts) {
         onRightDown: game.keyInputs.onRightDown,
         onRightUp: game.keyInputs.onRightUp,
         onLeftDown: game.keyInputs.onLeftDown,
-        onLeftUp: game.keyInputs.onLeftUp
+        onLeftUp: game.keyInputs.onLeftUp,
+        onSpace: game.keyInputs.onSpace
     });
 
     game.start();

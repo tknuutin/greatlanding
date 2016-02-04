@@ -1,10 +1,13 @@
 
 let _ = require('lodash');
-let { Planet } = require('./Planet');
+
 let { Rocket } = require('./Rocket');
 let { Rectangle } = require('./Shapes');
 let { clampRot, distancePoints } = require('./Calc');
 let V = require('./Vector');
+
+let { ROCKET } = require('./GameConfig');
+
 
 // ----------------------------------------------------
 // Gravity stuff, should move this out of here
@@ -28,59 +31,42 @@ function getGravityStrenghtForPoint(point, planet) {
 }
 // ----------------------------------------------------
 
-const ROCKET_W = 57;
-const ROCKET_H = 137.5;
-const ROCKET_H_OFFSET = 5;
-
-function getRocketStartPos(rocket, angle, planet) {
-    let worldPoint = planet.getSurfacePoint(angle);
-    let dir = V.sub(worldPoint, planet);
-    let mag = V.magnitude(dir);
-    let add = rocket.height / 2 - ROCKET_H_OFFSET;
-    let finalPos = V.add(V.mul(V.unit(dir), mag + add), planet);
-    return finalPos;
-}
-
 class ShapeManager {
     constructor(images, gameMap) {
         this.shapes = [];
+        this.planets = [];
+        this.gameMap = null;
+        this.rocket = null;
+        this.images = images;
+    }
 
-        this.planets = _.map(gameMap.planets, (planetDef) => {
-            let planet = new Planet(planetDef);
-            this.addShape(planet);
-            return planet;
-        });
+    getRocket() {
+        return this.rocket;
+    }
 
-        let rocket = new Rocket({
-            smokeImg: images['cloud.png'],
-            img: images['rocket.png'],
-            x: 0, y: 0,
-            rotation: gameMap.basePlanetAngle,
-            width: ROCKET_W / 2, height: ROCKET_H / 2,
+    initMap(planets, rocketDef) {
+        this.planets = planets;
+        _.each(planets, this.addShape.bind(this));
 
-            regX: ROCKET_W / 4,
+        let rocket = new Rocket(_.merge(rocketDef, {
+            smokeImg: this.images['cloud.png'],
+            img: this.images['rocket.png'],
+            width: ROCKET.WIDTH * ROCKET.FACTOR, height: ROCKET.HEIGHT * ROCKET.FACTOR,
+
+            regX: ROCKET.WIDTH * (ROCKET.FACTOR / 2),
             // Adding five so it looks like the approx central mass point
-            regY: (ROCKET_H / 4) + ROCKET_H_OFFSET
-        });
+            regY: (ROCKET.HEIGHT / 4) + ROCKET.H_OFFSET
+        }));
 
-        this.gameMap = gameMap;
         this.rocket = rocket;
-        this.setRocketPosition();
         this.addShape(rocket);
     }
 
-    setRocketStartPosition() {
-        let angle = this.gameMap.basePlanetAngle
-        let planet = _.find(this.planets, (planet) => planet.isBase);
-        let startPos = getRocketStartPos(this.rocket, angle, planet);
-        rocket.x = startPos.x;
-        rocket.y = startPos.y;
-    }
-
     reset() {
-        this.setRocketPosition();
-        this.rocket.move.v = { x: 0, y: 0 };
-        this.rocket.launched = false;
+        this.shapes = [];
+        this.planets = null;
+        this.rocket = null;
+        this.gameMap = null;
     }
 
     getClosestPlanet(rocket) {

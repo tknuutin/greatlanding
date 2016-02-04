@@ -19,6 +19,13 @@ const DEFAULT_CONFIG = {
         ROW: 25
     },
 
+    ROCKET: {
+        WIDTH: 57,
+        HEIGHT: 137.5,
+        H_OFFSET: 5,
+        FACTOR: 0.5
+    },
+
     SHOW_LANDING_INFO: 2000
 }
 

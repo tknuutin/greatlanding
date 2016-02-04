@@ -10,7 +10,8 @@ const KEYS = {
     W: 87,
     A: 65,
     S: 83,
-    D: 68
+    D: 68,
+    SPACE: 32
 };
 
 class KeyboardTracker {
@@ -54,6 +55,8 @@ class KeyboardTracker {
             case KEYS.D:
                 this.callbacks.onRightUp();
                 break;
+            case KEYS.SPACE:
+                this.callbacks.onSpace();
             default:
                 break;
         }
