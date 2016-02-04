@@ -38,10 +38,19 @@ class ShapeManager {
         this.gameMap = null;
         this.rocket = null;
         this.images = images;
+
+        this.crashed = false;
     }
 
     getRocket() {
         return this.rocket;
+    }
+
+    setCrashed(value) {
+        this.crashed = value;
+        if (this.rocket && value) {
+            this.rocket.move.stopped = true;
+        }
     }
 
     initMap(planets, rocketDef) {

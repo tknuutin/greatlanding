@@ -9,10 +9,9 @@ let { GameUI } = require('./GameUI');
 
 const FPS = 30;
 
-
-
 class Game {
     constructor(opts) {
+        this.images = opts.images;
         this.shapes = [];
         this.renderer = opts.renderer;
         this.mapNum = 0;
@@ -20,7 +19,7 @@ class Game {
         this.ui = opts.ui;
 
         let shapeMgr = new ShapeManager(opts.images);
-        this.gameLogic = new GameLogic(opts.images, shapeMgr);
+        this.gameLogic = null;
         this.initializer = new GameInitializer();
         this.shapeManager = shapeMgr;
 
@@ -81,6 +80,7 @@ class Game {
     }
 
     init() {
+        this.gameLogic = new GameLogic(this.images, this.shapeManager);
         let mapInfo = this.initializer.initMap(MAPS[this.mapNum]);
         this.shapeManager.initMap(mapInfo.planets, mapInfo.rocketDef);
         this.ui.createIndicator(mapInfo.targetPoint, 'Target');
@@ -92,19 +92,17 @@ class Game {
         }
 
         try {
-            if (!this.gameOver) {
-                this.gameLogic.update();
-                let info = this.gameLogic.analyze();
-                if (info.stop) {
-                    this.stop = true;
-                }
-
-                if (info.gameOver) {
-                    this.gameOver = true;
-                }
-
-                this.lastInfo = info;
+            this.gameLogic.update();
+            let info = this.gameLogic.analyze();
+            if (info.stop) {
+                this.stop = true;
             }
+
+            if (info.gameOver) {
+                this.gameOver = true;
+            }
+
+            this.lastInfo = info;
         } catch (e) {
             console.error(e.stack);
             this.stopped = true;
@@ -141,7 +139,6 @@ class Game {
                 this.renderer.updateEffects(shapes, this.lastInfo, rocket, camera);
                 this.renderer.render(shapes, camera);
                 this.renderer.renderUI(this.ui.getShapes());
-
                 this.stopped = this.lastInfo.stop;
             }
         };
@@ -213,39 +210,6 @@ function startApp(opts) {
     game.start();
 }
 
-function createUpdateUI() {
-    return (() => {
-        let uix = document.getElementById('ui-x');
-        let uiy = document.getElementById('ui-y');
-        let uispeed = document.getElementById('ui-speed');
-        let uirotation = document.getElementById('ui-rotation');
-        let landing = document.getElementById('ui-landing');
-        let lateral = document.getElementById('ui-lateral');
-        let vertical = document.getElementById('ui-vertical');
-        let langle = document.getElementById('ui-langle');
-
-        return (state) => {
-            let rocket = state.rocket;
-            uix.innerHTML = Math.round(rocket.x);
-            uiy.innerHTML = Math.round(rocket.y);
-            let round = (num) => Math.round(num * 100) / 100;
-            uispeed.innerHTML = round(state.speed);
-            uirotation.innerHTML = round(rocket.rotation);
-            landing.innerHTML = state.landing + '';
-
-            if (state.landing) {
-                lateral.innerHTML = round(state.lateral);
-                vertical.innerHTML = round(state.vertical);
-                langle.innerHTML = round(state.angle);
-            } else {
-                lateral.innerHTML = '';
-                vertical.innerHTML = '';
-            }
-
-        };
-    })();
-}
-
 window.onload = function onAppLoad() {
     preloadImages(_.map([
         'rocket.png',
@@ -258,8 +222,7 @@ window.onload = function onAppLoad() {
             images: _.reduce(images, (imageMap, value) => {
                 imageMap[value.path] = value.img;
                 return imageMap;
-            }, {}),
-            updateUI: createUpdateUI()
+            }, {})
         });
     })
 };

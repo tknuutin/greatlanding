@@ -4,12 +4,8 @@ let { Sprite } = require('./Shapes');
 let { EngineSmoke } = require('./Effects');
 let { rads, rotateAroundPoint } = require('./Calc');
 
-const MAIN_THRUST = 0.5;
-const ROT_THRUST = 0.3;
-const REVERSE_THRUST = 0.25;
-
-const START_FUEL = 250;
-
+let { ROCKET } = require('./GameConfig');
+let { MAIN, LEFT, RIGHT, REVERSE } = ROCKET.ENGINES;
 
 class Rocket extends Sprite {
     constructor(opts) {
@@ -19,7 +15,7 @@ class Rocket extends Sprite {
         this.isRocket = true;
         this.cutEngines = false;
 
-        this.fuel = START_FUEL;
+        this.fuel = ROCKET.START_FUEL;
 
         this.points = [
             { x: 0, y: -this.height / 2 },
@@ -39,31 +35,31 @@ class Rocket extends Sprite {
             main: {
                 def: {
                     x: this.width / 2, y: 60,
-                    angle: 180, scale: 1, force: 3
+                    angle: MAIN.ANGLE, scale: MAIN.SCALE, force: MAIN.FORCE
                 }
             },
             reverse1: {
                 def: {
                     x: 7, y: 10,
-                    angle: 0, scale: 0.5, force: 2
+                    angle: REVERSE.ANGLE, scale: REVERSE.SCALE, force: REVERSE.FORCE
                 }
             },
             reverse2: {
                 def: {
                     x: this.width - 7, y: 10,
-                    angle: 0, scale: 0.5, force: 2
+                    angle: REVERSE.ANGLE, scale: REVERSE.SCALE, force: REVERSE.FORCE
                 }
             },
             left: {
                 def: {
                     x: 5, y: 12,
-                    angle: 270, scale: 0.5, force: 2
+                    angle: LEFT.ANGLE, scale: LEFT.SCALE, force: LEFT.FORCE
                 }
             },
             right: {
                 def: {
                     x: this.width - 5, y: 12,
-                    angle: 90, scale: 0.5, force: 2
+                    angle: RIGHT.ANGLE, scale: RIGHT.SCALE, force: RIGHT.FORCE
                 }
             }
         };
@@ -97,7 +93,7 @@ class Rocket extends Sprite {
     }
 
     getFuel() {
-        return (this.fuel / START_FUEL) * 100;
+        return (this.fuel / ROCKET.START_FUEL) * 100;
     }
 
     useFuel(amount) {
@@ -117,21 +113,26 @@ class Rocket extends Sprite {
                 this.launched = true;
             }
 
-            this.useFuel(MAIN_THRUST);
-            this.applyForwardForce(-MAIN_THRUST);
+            this.useFuel(MAIN.THRUST);
+            this.applyForwardForce(-MAIN.THRUST);
         }
         if (this.engines.reverse1.on) {
-            this.useFuel(REVERSE_THRUST);
-            this.applyForwardForce(REVERSE_THRUST);
+            this.useFuel(REVERSE.THRUST);
+            this.applyForwardForce(REVERSE.THRUST);
         }
         if (this.engines.left.on) {
-            this.useFuel(ROT_THRUST);
-            this.rotspeed += ROT_THRUST;
+            this.useFuel(LEFT.THRUST);
+            this.rotspeed += LEFT.THRUST;
         }
         if (this.engines.right.on) {
-            this.useFuel(ROT_THRUST);
-            this.rotspeed -= ROT_THRUST;
+            this.useFuel(RIGHT.THRUST);
+            this.rotspeed -= RIGHT.THRUST;
         }
+    }
+
+    stop() {
+        this.move.v = { x: 0, y: 0 };
+        this.rotspeed = 0;
     }
 
     getPoints() {

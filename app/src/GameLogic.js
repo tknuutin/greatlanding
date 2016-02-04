@@ -33,11 +33,43 @@ function makeExplosion(img, position, onEnded) {
     return expl;
 }
 
+function getWinnerMessage(info) {
+    let fuel = Math.round(info.rocket.getFuel() * 100) / 100;
+    return `You reached the target with ${fuel}% fuel.`;
+}
+
+function getExplosionMessage(info) {
+    if (info.angle > 90) {
+        return "That's a weird way to land!";
+    } else if (info.angle > LIMIT_ANGLE) {
+        return 'Your landing angle was too steep!';
+    } else if (Math.abs(info.lateral) > LIMIT_LATERAL) {
+        return 'Your lateral velocity was too high!';
+    } else if (info.vertical > LIMIT_VERTICAL) {
+        return 'Your vertical velocity was too high!';
+    }
+    return 'What a mystery!';
+}
+
 class GameLogic {
     constructor(images, shapeMgr) {
         this.images = images;
         this.shapeMgr = shapeMgr;
         this.shouldStop = false;
+
+        this.crashed = false;
+
+        this.uiMessage = null;
+    }
+
+    setCrashed(value, info) {
+        this.crashed = value;
+        this.crashInfo = info;
+        this.shapeMgr.setCrashed(value);
+    }
+
+    addUIMessage(info) {
+        this.uiMessage = info;
     }
 
     checkForPlanetContact(info) {
@@ -46,21 +78,38 @@ class GameLogic {
         let planet = CollisionManager.checkRocketCollision(info.rocket, info.planets);
         if (planet) {
             if (Math.abs(lateral) > LIMIT_LATERAL || vertical > LIMIT_VERTICAL || angle > LIMIT_ANGLE) {
-                info.crashed = true;
+                this.setCrashed(true, info);
+                rocket.stop();
                 rocket.alpha = 0;
                 rocket.cutEngines = true;
+
                 let expl = makeExplosion(this.images['explosion.png'], { x: rocket.x, y: rocket.y }, () => {
                     this.shapeMgr.removeShape(expl);
-                    this.shouldStop = true;
                 });
+                setTimeout(() => {
+                    this.addUIMessage({
+                        header: 'You exploded!',
+                        message: getExplosionMessage(info),
+                        showRestartTip: true
+                    });
+                }, 300);
                 this.shapeMgr.addShape(expl);
-            }
-            else {
+            } else {
                 let finalRot = degs(V.angle(V.sub(planet, rocket), { x: 0, y: 5 }));
                 rocket.rotation = (planet.x > rocket.x) ? -(finalRot) : finalRot;
                 info.landed = true;
                 rocket.launched = false;
-                rocket.move.v = { x: 0, y: 0 };
+                rocket.stop();
+
+                if (planet.isTarget) {
+                    setTimeout(() => {
+                        this.addUIMessage({
+                            header: 'A winner is you!',
+                            message: getWinnerMessage(info),
+                            showRestartTip: true
+                        });
+                    }, 300);
+                }
             }
 
             info.gameOver = planet.isTarget || info.crashed;
@@ -82,11 +131,25 @@ class GameLogic {
         info.closestPlanetDistance = closestPlanetInfo.dist;
         info.planets = shapeMgr.planets;
 
-        info.speed = V.magnitude(rocket.move.v);
-        info.lateral = getPlanetLateralSpeed(closestPlanet, rocket);
-        info.vertical = getPlanetVerticalSpeed(closestPlanet, rocket);
-        info.angle = getRocketAngleToPlanet(closestPlanet, rocket);
-        info = this.checkForPlanetContact(info);
+        if (this.crashed) {
+            info.speed = this.crashInfo.speed;
+            info.lateral = this.crashInfo.lateral;
+            info.vertical = this.crashInfo.vertical;
+            info.angle = this.crashInfo.angle;
+        } else {
+            info.speed = V.magnitude(rocket.move.v);
+            info.lateral = getPlanetLateralSpeed(closestPlanet, rocket);
+            info.vertical = getPlanetVerticalSpeed(closestPlanet, rocket);
+            info.angle = getRocketAngleToPlanet(closestPlanet, rocket);
+            info = this.checkForPlanetContact(info);
+        }
+
+        if (this.uiMessage) {
+            info.uiMessage = this.uiMessage;
+            this.uiMessage = null;
+        }
+
+        info.crashed = this.crashed;
         info.stop = this.shouldStop ? true : info.stop;
         return info;
     }

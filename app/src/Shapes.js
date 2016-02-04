@@ -15,7 +15,7 @@ class Shape {
         this.regY = opts.regY || 0;
         this.lineWidth = opts.lineWidth;
         this.alpha = opts.alpha !== undefined ? opts.alpha : 1;
-        this.visible = true;
+        this.visible = opts.visible !== undefined ? opts.visible: true;
     }
 
     prerender(ctx) {
@@ -81,7 +81,6 @@ class RoundedRectangle extends Rectangle {
 
     render(ctx) {
         ctx.fillStyle = this.fillStyle;
-        // console.log('this fillstyle', this.fillStyle, this.y);
 
         ctx.beginPath();
         let cornerRadius1 = this.cornerRadius1;
@@ -103,6 +102,21 @@ class RoundedRectangle extends Rectangle {
     };
 }
 
+function measureText(text, fontString) {
+    var span = document.createElement('span');
+    span.style.font = fontString;
+    span.style.whiteSpace = 'nowrap';
+    span.style.position = 'absolute';
+    span.innerHTML = text;
+    span.style.visibility = 'hidden';
+    span.style.overflow = 'hidden';
+    document.body.appendChild(span);
+    var w = span.offsetWidth;
+    document.body.removeChild(span);
+
+    return w;
+}
+
 class TextNode extends Shape {
     constructor(opts = {}) {
         super(opts);
@@ -122,7 +136,12 @@ class TextNode extends Shape {
         this.lines = [this.text];
     }
 
+    getWidth() {
+         return measureText(this.lines[0], this.formatted);
+    }
+
     setText(text) {
+        this.text = text;
         this.lines[0] = text;
     }
 
