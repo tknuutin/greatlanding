@@ -5,7 +5,6 @@
 var browserify = require('browserify');
 var babel = require('gulp-babel');
 var gulp = require('gulp');
-var reactify = require('reactify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var sourcemaps = require('gulp-sourcemaps');
@@ -38,8 +37,6 @@ gulp.task('build', ['copy'], function () {
         entries: glob.sync(join(config.sourceFolder, '/**/*.js')),
         debug: true
     });
-
-    b.transform(reactify);
 
     return b.bundle()
         .pipe(source(config.bundleName))
