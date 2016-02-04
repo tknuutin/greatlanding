@@ -1,8 +1,8 @@
 
 let _ = require('lodash');
-let { Planet } = require('./Planet');
-let V = require('./Vector');
-let { ROCKET } = require('./GameConfig');
+let { Planet } = require('shapes/Planet');
+let V = require('math/Vector');
+let { ROCKET } = require('config/GameConfig');
 
 const MAPS = [
     {

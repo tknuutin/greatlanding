@@ -1,6 +1,6 @@
 
 let _ = require('lodash');
-let Calc = require('./Calc');
+let Calc = require('math/Calc');
 
 class Renderer {
     constructor(options = {}) {

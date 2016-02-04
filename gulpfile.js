@@ -17,7 +17,7 @@ var path = require('path');
 var join = path.join;
 
 var config = {
-    sourceFolder: './app',
+    sourceFolder: './app/src',
     buildFolder: './public',
     bundleName: 'app.js'
 };
@@ -35,7 +35,8 @@ gulp.task('build', ['copy'], function () {
     // set up the browserify instance on a task basis
     var b = browserify({
         entries: glob.sync(join(config.sourceFolder, '/**/*.js')),
-        debug: true
+        debug: true,
+        paths: [config.sourceFolder]
     });
 
     return b.bundle()

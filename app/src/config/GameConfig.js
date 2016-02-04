@@ -4,6 +4,8 @@ const DEFAULT_CONFIG = {
     LIMIT_VERTICAL: 2,
     LIMIT_LATERAL: 1,
 
+    FPS: 30,
+
     UI: {
         BG_COLOR: '#2E2E2E',
         UI_BG_ALPHA: 0.9,

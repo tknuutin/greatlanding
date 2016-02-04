@@ -1,5 +1,5 @@
 # greatlanding
-HTML5 / JavaScript based game where you fly a rocket and try to land on another planet.
+HTML5 / ES6 based game where you fly a rocket and try to land on another planet.
 
 Use W, A, S, D to activate engines and try to land safely at the target landing pad.
 

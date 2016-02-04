@@ -1,11 +1,10 @@
 
 // let _ = require('lodash');
-let CollisionManager = require('./CollisionManager');
-let V = require('./Vector');
-let { degs } = require('./Calc');
-let { getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('./Calc');
-let { SpriteSheet } = require('./Effects');
-let { LIMIT_LATERAL, LIMIT_VERTICAL, LIMIT_ANGLE } = require('./GameConfig');
+let CollisionManager = require('logic/CollisionManager');
+let V = require('math/Vector');
+let { degs, getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('math/Calc');
+let { SpriteSheet } = require('shapes/Effects');
+let { LIMIT_LATERAL, LIMIT_VERTICAL, LIMIT_ANGLE } = require('config/GameConfig');
 
 function getRocketAngleToPlanet(planet, rocket) {
     let surfaceTangent = V.normals(V.sub(planet, rocket))[0];

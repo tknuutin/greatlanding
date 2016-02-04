@@ -1,5 +1,5 @@
 
-let V = require('./Vector');
+let V = require('math/Vector');
 
 function rads(deg) {
     return (Math.PI / 180) * deg;

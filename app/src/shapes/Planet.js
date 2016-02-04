@@ -1,7 +1,7 @@
 
 let _ = require('lodash');
-let { Shape } = require('./Shapes');
-let { rads, distance } = require('./Calc');
+let { Shape } = require('shapes/Shapes');
+let { rads, distance } = require('math/Calc');
 
 // All planets that have been prerendered in this session. Maybe
 // need to empty this between map changes?

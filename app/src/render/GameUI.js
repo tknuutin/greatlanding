@@ -1,9 +1,9 @@
 
 let _ = require('lodash');
-let { RoundedRectangle, TextNode } = require('./Shapes');
-let { Indicator, getIndicatorPos } = require('./Indicator');
-let { distancePoints } = require('./Calc');
-let GameConfig = require('./GameConfig');
+let { RoundedRectangle, TextNode } = require('shapes/Shapes');
+let { Indicator, getIndicatorPos } = require('shapes/Indicator');
+let { distancePoints } = require('math/Calc');
+let GameConfig = require('config/GameConfig');
 let { SCREEN, UI } = GameConfig;
 
 function round(num) {

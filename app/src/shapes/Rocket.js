@@ -1,10 +1,10 @@
 
 let _ = require('lodash');
-let { Sprite } = require('./Shapes');
-let { EngineSmoke } = require('./Effects');
-let { rads, rotateAroundPoint } = require('./Calc');
+let { Sprite } = require('shapes/Shapes');
+let { EngineSmoke } = require('shapes/Effects');
+let { rads, rotateAroundPoint } = require('math/Calc');
 
-let { ROCKET } = require('./GameConfig');
+let { ROCKET } = require('config/GameConfig');
 let { MAIN, LEFT, RIGHT, REVERSE } = ROCKET.ENGINES;
 
 class Rocket extends Sprite {

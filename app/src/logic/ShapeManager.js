@@ -1,12 +1,12 @@
 
 let _ = require('lodash');
 
-let { Rocket } = require('./Rocket');
-let { Rectangle } = require('./Shapes');
-let { clampRot, distancePoints } = require('./Calc');
-let V = require('./Vector');
+let { Rocket } = require('shapes/Rocket');
+let { Rectangle } = require('shapes/Shapes');
+let { clampRot, distancePoints } = require('math/Calc');
+let V = require('math/Vector');
 
-let { ROCKET } = require('./GameConfig');
+let { ROCKET } = require('config/GameConfig');
 
 
 // ----------------------------------------------------

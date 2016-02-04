@@ -1,8 +1,8 @@
 
 let _ = require('lodash');
-let { linesIntersect } = require('./Calc');
-let V = require('./Vector');
-let { Shape, TextNode } = require('./Shapes');
+let { linesIntersect } = require('math/Calc');
+let V = require('math/Vector');
+let { Shape, TextNode } = require('shapes/Shapes');
 
 const MARGIN = 40;
 

@@ -1,6 +1,6 @@
 
 let _ = require('lodash');
-let { Shape, Sprite } = require('./Shapes');
+let { Shape, Sprite } = require('shapes/Shapes');
 
 const MAX_GROW = 30;
 const MIN_SIZE = 10;

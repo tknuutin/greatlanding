@@ -1,15 +1,14 @@
-
 let _ = require('lodash');
-let { Renderer } = require('./Renderer');
-let { KeyboardTracker } = require('./Trackers');
-let { GameLogic } = require('./GameLogic');
-let { ShapeManager } = require('./ShapeManager');
-let { GameInitializer, MAPS } = require('./GameInitializer');
-let { GameUI } = require('./GameUI');
 
-const FPS = 30;
+let { GameLogic } = require('logic/GameLogic');
+let { ShapeManager } = require('logic/ShapeManager');
+let { GameInitializer, MAPS } = require('logic/GameInitializer');
 
-class Game {
+let GameConfig = require('config/GameConfig');
+
+const FPS = GameConfig.FPS;
+
+class GameController {
     constructor(opts) {
         this.images = opts.images;
         this.shapes = [];
@@ -163,67 +162,4 @@ class Game {
     }
 }
 
-function preloadImages(sources) {
-    return Promise.all(_.map(sources, (path) => {
-        return new Promise((resolve, reject) => {
-            let img = new Image();
-            img.onload = () => {
-                resolve({ img, path });
-            };
-            img.onerror = () => {
-                console.error('error!', path);
-                reject();
-            };
-            img.src = 'public/assets/img/' + path;
-        });
-    }));
-}
-
-function startApp(opts) {
-    let canvas = document.getElementById('gamecanvas');
-    let { images } = opts;
-
-    let renderer = new Renderer({
-        background: images['spacebg.jpg'],
-        canvas,
-        width: 700, height: 500
-    });
-
-    let game = new Game({
-        images, ui: new GameUI(), renderer
-    });
-
-    let kb = new KeyboardTracker({
-        onForwardDown: game.keyInputs.onForwardDown,
-        onForwardUp: game.keyInputs.onForwardUp,
-
-        onReverseDown: game.keyInputs.onReverseDown,
-        onReverseUp: game.keyInputs.onReverseUp,
-
-        onRightDown: game.keyInputs.onRightDown,
-        onRightUp: game.keyInputs.onRightUp,
-        onLeftDown: game.keyInputs.onLeftDown,
-        onLeftUp: game.keyInputs.onLeftUp,
-        onSpace: game.keyInputs.onSpace
-    });
-
-    game.start();
-}
-
-window.onload = function onAppLoad() {
-    preloadImages(_.map([
-        'rocket.png',
-        'cloud.png',
-        'spacebg.jpg',
-        'explosion.png'
-    ])).then((images) => {
-
-        startApp({
-            images: _.reduce(images, (imageMap, value) => {
-                imageMap[value.path] = value.img;
-                return imageMap;
-            }, {})
-        });
-    })
-};
-
+module.exports = { GameController };
