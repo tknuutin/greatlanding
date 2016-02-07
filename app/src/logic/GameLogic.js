@@ -62,7 +62,7 @@ function getWinnerMessage(info) {
  */
 function getExplosionMessage(info) {
     if (info.angle > 90) {
-        return "That's a weird way to land!";
+        return 'That\'s a weird way to land!';
     } else if (info.angle > LIMIT_ANGLE) {
         return 'Your landing angle was too steep!';
     } else if (Math.abs(info.lateral) > LIMIT_LATERAL) {
@@ -80,7 +80,8 @@ function getExplosionMessage(info) {
  * - shapeMgr: The ShapeManager instance
  */
 class GameLogic {
-    constructor(images, shapeMgr) {
+    constructor(gameMap, images, shapeMgr) {
+        this.gameMap = gameMap;
         this.images = images;
         this.shapeMgr = shapeMgr;
         this.shouldStop = false;
@@ -113,6 +114,59 @@ class GameLogic {
     }
 
     /*
+     * Resolve rocket crashing on a planet.
+     * - info: Game state.
+     * - rocket: Rocket instance.
+     */
+    resolveCrash(info, rocket) {
+        this.setCrashed(true, info);
+        rocket.stop();
+        rocket.alpha = 0;
+        rocket.cutEngines = true;
+
+        let expl = makeExplosion(this.images['explosion.png'], { x: rocket.x, y: rocket.y }, () => {
+            this.shapeMgr.removeShape(expl);
+        });
+        setTimeout(() => {
+            this.addUIMessage({
+                header: 'You exploded!',
+                message: getExplosionMessage(info),
+                showRestartTip: true
+            });
+        }, 300);
+        this.shapeMgr.addShape(expl);
+    }
+
+    /*
+     * Resolve rocket landing on a planet.
+     * - info: Game state.
+     * - rocket: Rocket instance.
+     * - planet: Planet instance.
+     */
+    resolveLand(info, rocket, planet) {
+        let finalRot = degs(V.angle(V.sub(planet, rocket), { x: 0, y: 5 }));
+        rocket.rotation = (planet.x > rocket.x) ? -(finalRot) : finalRot;
+        info.landed = true;
+        rocket.launched = false;
+        rocket.stop();
+
+        let tAngle = this.gameMap.targetAngle;
+        let tWidth = this.gameMap.targetWidth;
+        let targetStart = tAngle - tWidth / 2;
+        let targetStop = targetStart + tWidth;
+
+        if (planet.isTarget && (finalRot > targetStart && finalRot < targetStop)) {
+            setTimeout(() => {
+                this.addUIMessage({
+                    header: 'A winner is you!',
+                    message: getWinnerMessage(info),
+                    showRestartTip: true
+                });
+            }, 300);
+        }
+    }
+
+    /*
      * Checks whether the game at the state is in contact with a planet.
      * Will call relevant parties if the Rocket is in contact, for example
      * winning the game if in contact with the target planet, exploding, etc.
@@ -124,38 +178,9 @@ class GameLogic {
         let planet = CollisionManager.checkRocketCollision(info.rocket, info.planets);
         if (planet) {
             if (Math.abs(lateral) > LIMIT_LATERAL || vertical > LIMIT_VERTICAL || angle > LIMIT_ANGLE) {
-                this.setCrashed(true, info);
-                rocket.stop();
-                rocket.alpha = 0;
-                rocket.cutEngines = true;
-
-                let expl = makeExplosion(this.images['explosion.png'], { x: rocket.x, y: rocket.y }, () => {
-                    this.shapeMgr.removeShape(expl);
-                });
-                setTimeout(() => {
-                    this.addUIMessage({
-                        header: 'You exploded!',
-                        message: getExplosionMessage(info),
-                        showRestartTip: true
-                    });
-                }, 300);
-                this.shapeMgr.addShape(expl);
+                this.resolveCrash(info, rocket);
             } else {
-                let finalRot = degs(V.angle(V.sub(planet, rocket), { x: 0, y: 5 }));
-                rocket.rotation = (planet.x > rocket.x) ? -(finalRot) : finalRot;
-                info.landed = true;
-                rocket.launched = false;
-                rocket.stop();
-
-                if (planet.isTarget) {
-                    setTimeout(() => {
-                        this.addUIMessage({
-                            header: 'A winner is you!',
-                            message: getWinnerMessage(info),
-                            showRestartTip: true
-                        });
-                    }, 300);
-                }
+                this.resolveLand(info, rocket, planet);
             }
 
             info.gameOver = planet.isTarget || info.crashed;

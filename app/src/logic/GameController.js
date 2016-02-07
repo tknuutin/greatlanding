@@ -92,9 +92,10 @@ class GameController {
      * rocket, planets, and other such things.
      */
     init() {
-        this.gameLogic = new GameLogic(this.images, this.shapeManager);
         let mapInfo = this.initializer.initMap(MAPS[this.mapNum]);
         this.shapeManager.initMap(mapInfo.planets, mapInfo.rocketDef);
+
+        this.gameLogic = new GameLogic(mapInfo, this.images, this.shapeManager);
         this.ui.createIndicator(mapInfo.targetPoint, 'Target');
     }
 

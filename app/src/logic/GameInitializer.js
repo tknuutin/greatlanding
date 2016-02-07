@@ -112,7 +112,9 @@ class GameInitializer {
         return {
             planets,
             rocketDef: this.initRocketDef(gameMap, planets),
-            targetPoint: tPlanet.getSurfacePoint(gameMap.targetPlanetAngle)
+            targetPoint: tPlanet.getSurfacePoint(gameMap.targetPlanetAngle),
+            targetAngle: gameMap.targetPlanetAngle,
+            targetWidth: gameMap.targetWidth
         };
     }
 
