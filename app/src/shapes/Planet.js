@@ -7,12 +7,19 @@ let { rads, distance } = require('math/Calc');
 // need to empty this between map changes?
 let CACHED_PRERENDER = {};
 
+/*
+ * Get the hash string of a planet.
+ */
 function hashPlanet(planet) {
     return _.map([planet.size, planet.atmsSize, planet.atmsColor], (value) => {
         return value + '';
     }).join('_');
 }
 
+/*
+ * Return a canvas element with the given size.
+ * - side: Object with width and height properties.
+ */
 function createTemporaryCanvas(size) {
     let canvas = document.createElement('canvas');
     canvas.width = size;
@@ -20,18 +27,27 @@ function createTemporaryCanvas(size) {
     return canvas;
 }
 
+/*
+ * Draw a circle of a given size on the given context.
+ */
 function drawCircle(ctx, size) {
     ctx.beginPath();
     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2, true);
     ctx.closePath();
 }
 
+/*
+ * Draw a filled circle with the given size and color to the context.
+ */
 function drawCircleAndFill(ctx, size, color) {
     drawCircle(ctx, size);
     ctx.fillStyle = color;
     ctx.fill();
 }
 
+/*
+ * A large planet shape with gravity, atmosphere, and other effects.
+ */
 class Planet extends Shape {
     constructor(opts = {}) {
         super(opts);
@@ -43,18 +59,38 @@ class Planet extends Shape {
         this.size = opts.size;
         this.regX = this.size / 2;
         this.regY = this.size / 2;
+
+        // Atmosphere size
         this.atmsSize = opts.atmsSize;
+
+        // Atmosphere color
         this.atmsColor = opts.atmsColor;
-        this.atmsBegin = opts.atmsBegin;
+
+        // Cached pre-rendered atmosphere sprite
         this._atms = null;
+
+        // Surface gravity
         this.gravity = opts.gravity;
+
+        // Gravity max distance
         this.gravMaxDist = opts.gravMaxDist || 1200;
+
+        // Colored portions of the surface.
         this.paints = [];
+
         this.hash = hashPlanet(this);
 
+        // For a neat darkening effect near planets - the current
+        // alpha of the black gradient circle.
         this.darkAlpha = 1;
     }
 
+    /*
+     * If this planet has not been prerendered yet on this page load,
+     * prerender it on temporary canvases and save them. The processing time
+     * to render a large gradient of the atmosphere can take a while,
+     * so this is useful.
+     */
     prerenderAtmosphere() {
         if (!CACHED_PRERENDER[this.hash]) {
             let atmsCanvas = createTemporaryCanvas(this.atmsSize);
@@ -67,6 +103,9 @@ class Planet extends Shape {
             aGrad.addColorStop(0, 'rgba(' + aColorString + ',1');
             drawCircleAndFill(actx, this.atmsSize, aGrad);
 
+            // The size and gradient of the large black darkening circle,
+            // simulates the brightness of the planet's atmosphere washing out
+            // stars and other space background stuff.
             let darkSize = this.atmsSize * 1.3;
             let darkRadius = darkSize / 2;
             let darkCanvas = createTemporaryCanvas(darkSize);
@@ -91,6 +130,9 @@ class Planet extends Shape {
         this._atms = CACHED_PRERENDER[this.hash].atms;
     }
 
+    /*
+     * Render the atmosphere of a planet on a given context.
+     */
     renderAtmosphere(ctx) {
         ctx.save();
         let darkSize = this._atmsDarkSize - this.size;
@@ -110,6 +152,10 @@ class Planet extends Shape {
         ctx.restore();
     }
 
+    /*
+     * Get the x,y point on the surface at a certain angle.
+     * - angle: Angle in degrees
+     */
     getSurfacePoint(angle) {
         let planetAngle = angle - 90;
         return {
@@ -118,21 +164,32 @@ class Planet extends Shape {
         };
     }
 
+    /*
+     * Add a colored portion of the planet surface.
+     * - start: Start of the colored portion in degrees
+     * - end: End of the colored portion in degrees
+     * - color: Color as a hex string.
+     */
     paintSurface(start, end, color) {
         this.paints.push({
             start, end, color
         })
     }
 
+    /*
+     * Checks whether the Rocket collides with this planet. Returns a boolean.
+     */
     collidesWith(rocket) {
-        let collision = _.some(rocket.getPoints(), (point) => {
+        return _.some(rocket.getPoints(), (point) => {
             let px = point.x + rocket.x;
             let py = point.y + rocket.y;
             return distance(px, py, this.x, this.y) <= (this.size / 2);
         });
-        return collision;
     }
 
+    /*
+     * Render all the colored painted portions of the planet surface on the context.
+     */
     renderPaints(ctx) {
         let { size } = this;
         _.each(this.paints, ({ start, end, color }) => {
@@ -141,8 +198,6 @@ class Planet extends Shape {
             let paintStart = rads(start - 90);
             let paintStop = rads(end - 90);
             ctx.arc(size / 2, size / 2, size / 2, paintStart, paintStop, false);
-            // ctx.arc(size / 2, size / 2, size / 2, paintStop, paintStart, true);
-            // ctx.closePath();
             ctx.lineWidth = 6;
             ctx.strokeStyle = color;
             ctx.stroke();

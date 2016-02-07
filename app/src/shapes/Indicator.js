@@ -4,8 +4,17 @@ let { linesIntersect } = require('math/Calc');
 let V = require('math/Vector');
 let { Shape, TextNode } = require('shapes/Shapes');
 
+// Margin for the indicator from the edges of the screen.
 const MARGIN = 40;
 
+/*
+ * Get the point on the UI border where an indicator should be drawn to properly point
+ * to the Indicator's target point. Returns an object with x,y properties.
+ * - indicator: Indicator instance
+ * - screenW: Screen width
+ * - screenH: Screen height
+ * - cameraPos: An object with x,y properties for where the camera is in the game
+ */
 function getIndicatorBorderPoint(indicator, screenW, screenH, cameraPos) {
     let x = 0;
     let y = 0;
@@ -35,6 +44,14 @@ function getIndicatorBorderPoint(indicator, screenW, screenH, cameraPos) {
     return { x, y };
 }
 
+/*
+ * Get the point on the UI where an indicator should be drawn to. The point
+ * can be on screen, in which case the indicator will be drawn over the target point.
+ * - indicator: Indicator instance
+ * - screenW: Screen width
+ * - screenH: Screen height
+ * - cameraPos: An object with x,y properties for where the camera is in the game
+ */
 function getIndicatorPos(indicator, screenW, screenH, cameraPos) {
     let target = indicator.point;
     let onScreen = (
@@ -50,6 +67,10 @@ function getIndicatorPos(indicator, screenW, screenH, cameraPos) {
     return V.sub(target, screen);
 }
 
+/*
+ * An indicator diamond shape, signifies a point of interest.
+ * Takes in an object with width and height.
+ */
 class IndicatorShape extends Shape {
     constructor(opts) {
         super(opts);
@@ -70,6 +91,15 @@ class IndicatorShape extends Shape {
     }
 }
 
+/*
+ * Functionality to make an UI indicator that points to a point of interest in the game
+ * If the target is off screen, the indicator will be on the border of the UI pointing the
+ * direction. If the target is on screen, the indicator will be over the target.
+ * Fades as you get really close to the target. Takes an options object:
+ * - point: An object with x,y properties
+ * - text: Text to display on the indicator, the name of the point for example
+ * - offset: Offset to account for the text. TODO: Should center text instead.
+ */
 class Indicator {
     constructor({ point, text, offset }) {
         this.point = point;
@@ -92,6 +122,11 @@ class Indicator {
         });
     }
 
+    /*
+     * Update the position and graphics of the indicator.
+     * - pos: Object with x,y properties, moves the indicator to this position.
+     * - distance: Distance to the target.
+     */
     update(pos, distance) {
         this.lines.x = pos.x;
         this.lines.y = pos.y;

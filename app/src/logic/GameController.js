@@ -1,3 +1,4 @@
+
 let _ = require('lodash');
 
 let { GameLogic } = require('logic/GameLogic');
@@ -8,10 +9,15 @@ let GameConfig = require('config/GameConfig');
 
 const FPS = GameConfig.FPS;
 
+/*
+ * Top controlling class that takes care of initializing and re-initializing
+ * crucial game logic and managers. Takes in an object.
+ * - images: An array of objects describing preloaded images.
+ * - renderer: the Renderer instance.
+ */
 class GameController {
     constructor(opts) {
         this.images = opts.images;
-        this.shapes = [];
         this.renderer = opts.renderer;
         this.mapNum = 0;
 
@@ -73,11 +79,18 @@ class GameController {
 
     }
 
+    /*
+     * Reset game state by destroying all and any shapes or other game state.
+     */
     reset() {
         this.shapeManager.reset();
         this.ui.reset();
     }
 
+    /*
+     * Initialize or re-initialize game state with the map info. Creates shapes,
+     * rocket, planets, and other such things.
+     */
     init() {
         this.gameLogic = new GameLogic(this.images, this.shapeManager);
         let mapInfo = this.initializer.initMap(MAPS[this.mapNum]);
@@ -85,6 +98,9 @@ class GameController {
         this.ui.createIndicator(mapInfo.targetPoint, 'Target');
     }
 
+    /*
+     * Game logic tick. Delegates calls to other game logic classes and handles graceful crashing.
+     */
     logicUpdate() {
         if (this.record) {
             this.count++;
@@ -108,11 +124,27 @@ class GameController {
         }
     }
 
+    /*
+     * Creates the function for the game loop. Returns a function that will
+     * run the game logic as many times as we should since last time the function was ran,
+     * then renders the state.
+     *
+     * Forces game logic to run at FPS. Render steps may be skipped but will be caught up
+     * in a weird jerk if needed, that might need to be refactored?
+     *
+     * Modified from: http://nokarma.org/2011/02/02/javascript-game-development-the-game-loop/
+     */
     createStepFunction() {
-        // Modified from: http://nokarma.org/2011/02/02/javascript-game-development-the-game-loop/
+        // Current number of logic loops done without a render.
         let loops = 0;
+
+        // The amount of time between each render.
         let timeBetweenSteps = 1000 / FPS;
+
+        // Max amount of render frames we can skip before we need to a render no matter what.
         let maxFrameSkip = 10;
+
+        // When the next game step should happen.
         let nextGameStep = (new Date()).getTime();
 
         return () => {
@@ -143,7 +175,10 @@ class GameController {
         };
     }
 
-    start() {
+    /*
+     * Start the game loop.
+     */
+    startLoop() {
         let step = this.createStepFunction();
         let nextFrame = () => {
             step();
@@ -155,10 +190,6 @@ class GameController {
         };
 
         nextFrame();
-    }
-
-    getShapes() {
-        return this.shapes;
     }
 }
 

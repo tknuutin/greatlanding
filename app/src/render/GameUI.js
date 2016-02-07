@@ -10,6 +10,9 @@ function round(num) {
     return Math.round(num * 100) / 100;
 }
 
+/*
+ * Class for controlling the top left UI elements.
+ */
 class TopLeftUI {
     constructor() {
         this.box1 = new RoundedRectangle({
@@ -107,6 +110,11 @@ class TopLeftUI {
         ].concat(_.map(this.nodes, (node) => node.shape));
     }
 
+    /*
+     * Update the UI texts and other attributes based on the
+     * game state object.
+     * - info: Game state object
+     */
     update(info) {
         _.each(this.nodes, (node) => {
             node.shape.setText(node.getText(info));
@@ -120,6 +128,9 @@ class TopLeftUI {
         });
     }
 
+    /*
+     * Set whether the landing info window is displayed or not.
+     */
     setLandingInfoDisplayed(value) {
         this.landingInfoDisplayed = value;
         this.box2.visible = value;
@@ -133,6 +144,9 @@ class TopLeftUI {
     }
 }
 
+/*
+ * A pop-up UI message in the center of the screen or thereabouts.
+ */
 class UIMessage {
     constructor() {
         this.box = new RoundedRectangle({
@@ -172,6 +186,9 @@ class UIMessage {
         this.setVisible(false);
     }
 
+    /*
+     * Set whether the popup is visible or not.
+     */
     setVisible(value) {
         this.visible = value;
         _.each(this.shapes, (shape) => {
@@ -179,6 +196,10 @@ class UIMessage {
         });
     }
 
+    /*
+     * Set the message for the popup.
+     * - info: An object with header, message, and showRestartTip properties.
+     */
     setMessage(info) {
         this.showRestartTip = info.showRestartTip;
         this.header.setText(info.header);
@@ -197,8 +218,11 @@ class UIMessage {
     }
 }
 
+/*
+ * The game UI controlling class.
+ */
 class GameUI {
-    constructor(targetPlanet) {
+    constructor() {
         this.indicators = [];
         this.topLeftUI = new TopLeftUI();
         this.message = new UIMessage();
@@ -206,6 +230,9 @@ class GameUI {
         this.shapes = this.topLeftUI.getShapes().concat(this.message.getShapes());
     }
 
+    /*
+     * Reset all UI state.
+     */
     reset() {
         _.each(this.indicators, (ind) => {
             _.each(ind.getShapes(), (shape) => _.pull(this.shapes, shape));
@@ -216,6 +243,11 @@ class GameUI {
         this.message.setVisible(false);
     }
 
+    /*
+     * Create a floating UI indicator to an x,y position on the map.
+     * - point: An object with x,y properties.
+     * - text: Text to display in the indicator, name of the point for example.
+     */
     createIndicator(point, text) {
         let ind = new Indicator({
             point: point,
@@ -226,10 +258,16 @@ class GameUI {
         this.shapes = ind.getShapes().concat(this.shapes);
     }
 
+    /*
+     * Set whether the landing info panel should be displayed.
+     */
     setLandingInfoDisplayed(value) {
         this.topLeftUI.setLandingInfoDisplayed(value);
     }
 
+    /*
+     * Update all UI elements with the latest game state.
+     */
     update(info) {
         this.setLandingInfoDisplayed(info.closestPlanetDistance < GameConfig.SHOW_LANDING_INFO);
 

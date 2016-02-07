@@ -4,13 +4,14 @@ let { Planet } = require('shapes/Planet');
 let V = require('math/Vector');
 let { ROCKET } = require('config/GameConfig');
 
+// List of defined maps!
 const MAPS = [
     {
         planets: [
             {
                 name: 'Base',
                 x: 200, y: 1700,
-                gravity: 13,
+                gravity: 11,
                 size: 3000, fillStyle: '#85889E',
                 atmsSize: 3800,
                 isBase: true,
@@ -21,7 +22,7 @@ const MAPS = [
                 name: 'Target',
                 isTarget: true,
                 x: 4500, y: 5000,
-                gravity: 9.5,
+                gravity: 7.5,
                 size: 2700,
                 fillStyle: '#9E8593',
                 atmsSize: 3400,
@@ -37,6 +38,11 @@ const MAPS = [
     }
 ];
 
+/*
+ * Get the x,y coordinates of a rocket on the surface at a given angle at a given planet.
+ * - angle: Angle in degrees
+ * - planet: Planet instance
+ */
 function getRocketStartPos(angle, planet) {
     let worldPoint = planet.getSurfacePoint(angle);
     let dir = V.sub(worldPoint, planet);
@@ -46,11 +52,19 @@ function getRocketStartPos(angle, planet) {
     return finalPos;
 }
 
+/*
+ * A factory class that initializes a specific map by instantiating key objects.
+ * Could be a collection of functions I guess!
+ */
 class GameInitializer {
     constructor() {
         // nothing
     }
 
+    /*
+     * Takes in a map definition and returns an instance of Planet instances initialized
+     * from the map info.
+     */
     initPlanets(gameMap) {
         let planets = _.map(gameMap.planets, (planetDef) => {
             return new Planet(planetDef);
@@ -69,6 +83,10 @@ class GameInitializer {
         return planets;
     }
 
+    /*
+     * Takes in a map definition and returns an object with Rocket properties
+     * that define the Rocket's state at the start of the map.
+     */
     initRocketDef(gameMap, planets) {
         let angle = gameMap.basePlanetAngle;
         let startPlanet = _.find(planets, (planet) => planet.isBase);
@@ -79,6 +97,13 @@ class GameInitializer {
         };
     }
 
+    /*
+     * Takes in a map definition (one of the maps in the MAPS const) and returns an object
+     * with the following properties:
+     * - planets: Array of Planet instances in the map.
+     * - rocketDef: Rocket starting properties. Not a Rocket instance.
+     * - targetPoint: The x,y coordinates of the target of this map.
+     */
     initMap(gameMap) {
         this.map = gameMap;
         let planets = this.initPlanets(gameMap);

@@ -7,12 +7,21 @@ let { rads, rotateAroundPoint } = require('math/Calc');
 let { ROCKET } = require('config/GameConfig');
 let { MAIN, LEFT, RIGHT, REVERSE } = ROCKET.ENGINES;
 
+/*
+ * The player-controllable Rocket instance. Takes in an options object. Subclasses Sprite.
+ * - smokeImg: Image instance to use for the engine smoke effects.
+ */
 class Rocket extends Sprite {
     constructor(opts) {
         super(opts);
 
+        // Is the rocket resting on a planet surface?
         this.launched = false;
+
+        // dumb
         this.isRocket = true;
+
+        // Should cut all engine effects immediately?
         this.cutEngines = false;
 
         this.fuel = ROCKET.START_FUEL;
@@ -72,6 +81,11 @@ class Rocket extends Sprite {
         });
     }
 
+    /*
+     * Send a start or stop signal to a given engine. Starts smoke effect.
+     * - engine: One of the members of rocket.engines.
+     * - isPowered: Boolean whether engine should be powered or not.
+     */
     sendSignalToEngine(engine, isPowered) {
         if ((this.launched || engine === this.engines.main) &&
             !(this.fuel <= 0 && isPowered)) {
@@ -85,6 +99,10 @@ class Rocket extends Sprite {
         }
     }
 
+    /*
+     * Apply a force pointing in the forward/backward direction of the rocket.
+     * - force: Strength of the force, as in the magnitude of the vector.
+     */
     applyForwardForce(force) {
         let thrust = { x: 0, y: force };
         let newThrust = rotateAroundPoint(rads(this.rotation), { x: 0, y: 0 }, thrust);
@@ -92,10 +110,16 @@ class Rocket extends Sprite {
         this.move.v.y += newThrust.y;
     }
 
+    /*
+     * Get the current fuel as percentage from the starting fuel.
+     */
     getFuel() {
         return (this.fuel / ROCKET.START_FUEL) * 100;
     }
 
+    /*
+     * Use a given amount of fuel from the reserves.
+     */
     useFuel(amount) {
         this.fuel = Math.max(0, this.fuel - amount);
         if (this.fuel <= 0) {
@@ -107,6 +131,10 @@ class Rocket extends Sprite {
         }
     }
 
+    /*
+     * Update the engine status and other stats of the Rocket.
+     * Applies rocket forces and expends fuel.
+     */
     update() {
         if (this.engines.main.on) {
             if (!this.launched) {
@@ -130,21 +158,34 @@ class Rocket extends Sprite {
         }
     }
 
+    /*
+     * Stop the current movement and rotation of the rocket.
+     * Note that this does not stop the effect of gravity.
+     */
     stop() {
         this.move.v = { x: 0, y: 0 };
         this.rotspeed = 0;
     }
 
+    /*
+     * Get all the collision points of the Rocket.
+     */
     getPoints() {
         return _.map(this.points, (point) => rotateAroundPoint(rads(this.rotation), { x: 0, y: 0, }, point));
     }
 
+    /*
+     * Render a smoke effect on the context.
+     */
     renderSmoke(ctx, smoke) {
         smoke.prerender(ctx);
         smoke.render(ctx);
         smoke.postrender(ctx);
     }
 
+    /*
+     * Render a debug point.
+     */
     renderPoint(ctx, p) {
         ctx.save();
         ctx.beginPath();

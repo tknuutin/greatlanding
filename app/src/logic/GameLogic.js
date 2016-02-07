@@ -1,11 +1,17 @@
 
-// let _ = require('lodash');
+
 let CollisionManager = require('logic/CollisionManager');
 let V = require('math/Vector');
 let { degs, getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('math/Calc');
 let { SpriteSheet } = require('shapes/Effects');
 let { LIMIT_LATERAL, LIMIT_VERTICAL, LIMIT_ANGLE } = require('config/GameConfig');
 
+/*
+ * Takes in a Planet and Rocket instance and returns as degrees the angle
+ * between the surface tangent and the rocket's bottom surface.
+ * - planet: Planet instance
+ * - rocket: Rocket Instance
+ */
 function getRocketAngleToPlanet(planet, rocket) {
     let surfaceTangent = V.normals(V.sub(planet, rocket))[0];
 
@@ -17,7 +23,16 @@ function getRocketAngleToPlanet(planet, rocket) {
     return degs(V.angle(landVector, surfaceTangent));
 }
 
+/*
+ * Creates an animated explosion using the given Image instance
+ * at the given position. Fires the given onEnded callback
+ * when the explosion finishes animating.
+ * - img: A preloaded Image instance
+ * - position: An position object with x and y values.
+ * - onEnded: Callback function
+ */
 function makeExplosion(img, position, onEnded) {
+    // TODO: move these magic values somewhere else.
     let reg = ((320 / 5) / 2) * 1.5;
     let expl = new SpriteSheet({
         x: position.x, y: position.y,
@@ -32,11 +47,19 @@ function makeExplosion(img, position, onEnded) {
     return expl;
 }
 
+/*
+ * Get the message string displayed when the user wins.
+ * - info: An object describing the game state.
+ */
 function getWinnerMessage(info) {
     let fuel = Math.round(info.rocket.getFuel() * 100) / 100;
     return `You reached the target with ${fuel}% fuel.`;
 }
 
+/*
+ * Get the message string displayed when the Rocket explodes.
+ * - info: An object describing the game state.
+ */
 function getExplosionMessage(info) {
     if (info.angle > 90) {
         return "That's a weird way to land!";
@@ -50,6 +73,12 @@ function getExplosionMessage(info) {
     return 'What a mystery!';
 }
 
+/*
+ * Main game logic resolving class. Creates game state
+ * info objects by analyzing the shapes in the game.
+ * - images: An object with preloaded Image instances
+ * - shapeMgr: The ShapeManager instance
+ */
 class GameLogic {
     constructor(images, shapeMgr) {
         this.images = images;
@@ -61,16 +90,34 @@ class GameLogic {
         this.uiMessage = null;
     }
 
+    /*
+     * Set the "crashed" status of the game.
+     * - value: Boolean value describing whether the user has crashed.
+     * - info: A game state object at the time when the crash happened.
+     */
     setCrashed(value, info) {
         this.crashed = value;
         this.crashInfo = info;
         this.shapeMgr.setCrashed(value);
     }
 
+    /*
+     * Adds an UI message into the game state.
+     * - info: An object that describes an UI popup message.
+     *   - header: A string describing the message header.
+     *   - message: A longer message to be displayed.
+     *   - showRestartTip: Boolean, should display the restart tooltip?
+     */
     addUIMessage(info) {
         this.uiMessage = info;
     }
 
+    /*
+     * Checks whether the game at the state is in contact with a planet.
+     * Will call relevant parties if the Rocket is in contact, for example
+     * winning the game if in contact with the target planet, exploding, etc.
+     * Returns a new game state pbject.
+     */
     checkForPlanetContact(info) {
         let rocket = info.rocket;
         let { lateral, vertical, angle } = info;
@@ -116,6 +163,11 @@ class GameLogic {
         return info;
     }
 
+    /*
+     * Analyzes the current game state and returns an object describing it.
+     * Includes values such as closest planet, vertical speed compared to
+     * that planet's surface, etc.
+     */
     analyze() {
         let info = {};
         let { shapeMgr } = this;
@@ -153,6 +205,9 @@ class GameLogic {
         return info;
     }
 
+    /*
+     * Run updates on the game logic.
+     */
     update() {
         this.shapeMgr.updateShapePositions();
     }

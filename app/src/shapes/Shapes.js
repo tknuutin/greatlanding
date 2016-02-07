@@ -1,6 +1,23 @@
 
 let _ = require('lodash');
 
+/*
+ * Generic shape superclass. Takes in an options object.
+ * - name: Name of the shape as string. For debug.
+ * - x: X coordinate in the game map.
+ * - y: Y coordinate in the game map.
+ * - fillStyle: Fill color of the shape as hex string.
+ * - strokeStyle: Stroke color of the shape as hex string.
+ * - rotation: Rotation of the shape as degrees.
+ * - scaleX: The X scaling factor of the shape. Must be larger than 0.
+ * - scaleY: The Y scaling factor of the shape. Must be larger than 0.
+ * - regX: The offset to the X registration point. For example, a centered
+ *   shape will have a regX of width/2.
+ * - regY: The offset to the Y registration point.
+ * - lineWidth: Width of the stroke line.
+ * - alpha: The transparency amount of the shape, between 0 and 1.
+ * - visible: Is this shape displayed?
+ */
 class Shape {
     constructor(opts = {}) {
         this.name = opts.name;
@@ -15,9 +32,13 @@ class Shape {
         this.regY = opts.regY || 0;
         this.lineWidth = opts.lineWidth;
         this.alpha = opts.alpha !== undefined ? opts.alpha : 1;
-        this.visible = opts.visible !== undefined ? opts.visible: true;
+        this.visible = opts.visible !== undefined ? opts.visible : true;
     }
 
+    /*
+     * Initialize the context for drawing this shape, for example
+     * scale and rotation.
+     */
     prerender(ctx) {
         ctx.save();
         ctx.translate(this.x - this.regX, this.y - this.regY);
@@ -39,6 +60,9 @@ class Shape {
         ctx.globalAlpha = this.alpha;
     }
 
+    /*
+     * Do common draw processes such as fill and de-initialize the draw context.
+     */
     postrender(ctx) {
         if (this.fillStyle) {
             ctx.fillStyle = this.fillStyle;
@@ -55,6 +79,9 @@ class Shape {
     }
 }
 
+/*
+ * A simple rectangle with a width and height. Subclasses Shape.
+ */
 class Rectangle extends Shape {
     constructor(opts = {}) {
         super(opts);
@@ -69,6 +96,14 @@ class Rectangle extends Shape {
     }
 }
 
+/*
+ * A rectangle with rounded edges. Subclases Rectangle.
+ * - cornerRadius: The corner radius for all corners.
+ * - cornerRadius1: The top left corner radius. Overrides cornerRadius if given.
+ * - cornerRadius2: The top right corner radius. Overrides cornerRadius if given.
+ * - cornerRadius3: The bottom right corner radius. Overrides cornerRadius if given.
+ * - cornerRadius4: The bottom left corner radius. Overrides cornerRadius if given.
+ */
 class RoundedRectangle extends Rectangle {
     constructor(opts = {}) {
         super(opts);
@@ -99,11 +134,14 @@ class RoundedRectangle extends Rectangle {
         ctx.arcTo(0, 0, cornerRadius1, 0, cornerRadius1);
 
         ctx.closePath();
-    };
+    }
 }
 
+/*
+ * Measure the pixel width of a given rendered string with a given font.
+ */
 function measureText(text, fontString) {
-    var span = document.createElement('span');
+    let span = document.createElement('span');
     span.style.font = fontString;
     span.style.whiteSpace = 'nowrap';
     span.style.position = 'absolute';
@@ -111,12 +149,21 @@ function measureText(text, fontString) {
     span.style.visibility = 'hidden';
     span.style.overflow = 'hidden';
     document.body.appendChild(span);
-    var w = span.offsetWidth;
+    let w = span.offsetWidth;
     document.body.removeChild(span);
 
     return w;
 }
 
+/*
+ * A text node rendered on the canvas. Subclasses Shape.
+ * - text: Text displayed.
+ * - fontSize: Size of the rendered font
+ * - fontStyle: Weight of the rendered font.
+ * - fontFamily: The font family.
+ * - textAlign: Alignment of the text.
+ * - textBaseLine: The vertical text baseline.
+ */
 class TextNode extends Shape {
     constructor(opts = {}) {
         super(opts);
@@ -136,12 +183,20 @@ class TextNode extends Shape {
         this.lines = [this.text];
     }
 
+    /*
+     * Calculate the current width of the rendered text.
+     */
     getWidth() {
-         return measureText(this.lines[0], this.formatted);
+        return measureText(this.lines[0], this.formatted);
     }
 
+    /*
+     * Set the text of this TextNode.
+     */
     setText(text) {
         this.text = text;
+
+        // Only support single line textnodes for now.
         this.lines[0] = text;
     }
 
@@ -164,6 +219,12 @@ class TextNode extends Shape {
     }
 }
 
+/*
+ * A generic image rendered on the canvas. Subclasses Shape.
+ * - width: Width of the rendered image.
+ * - height: Height of the rendered image.
+ * - img: Image instance.
+ */
 class Sprite extends Shape {
     constructor(opts = {}) {
         super(opts);
@@ -174,6 +235,7 @@ class Sprite extends Shape {
         this.naturalWidth = this.img.width;
         this.naturalHeight = this.img.height;
 
+        // Do this later
         this.cropX = 0;
         this.cropY = 0;
     }

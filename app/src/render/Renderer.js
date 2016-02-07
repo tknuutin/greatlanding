@@ -2,6 +2,16 @@
 let _ = require('lodash');
 let Calc = require('math/Calc');
 
+// How slow the background moves compared to the camera.
+const BG_MOVE_FACTOR = 8;
+
+/*
+ * The Canvas renderer instance. Takes in an options object with the following properties:
+ * - canvas: A canvas HTML Node.
+ * - width: Width of the canvas.
+ * - height: Height of the canvas.
+ * - background: An Image instance used for the tiled background of the canvas.
+ */
 class Renderer {
     constructor(options = {}) {
         this.id = null;
@@ -14,19 +24,28 @@ class Renderer {
         this.logging = false;
     }
 
+    /*
+     * Set the size of the canvas.
+     */
     setSize(w, h) {
         this.width = w;
         this.height = h;
     }
 
+    /*
+     * Empty the canvas from any drawn pixels.
+     */
     clear() {
         this.ctx.clearRect(0, 0, this.w, this.h);
     }
 
+    /*
+     * Render the moving tiled background.
+     * - pos: The position of the camera.
+     */
     renderBG(pos) {
-        let factor = 8;
-        let x = pos.x / factor;
-        let y = pos.y / factor;
+        let x = pos.x / BG_MOVE_FACTOR;
+        let y = pos.y / BG_MOVE_FACTOR;
         let bgw = this.bg.width;
         let bgh = this.bg.height;
         let ctx = this.ctx;
@@ -50,6 +69,10 @@ class Renderer {
         ctx.translate(bgOffsetX, bgOffsetY);
     }
 
+    /*
+     * Update the state of all game visual effects, for example
+     * the dark umbras around Planets when you get close in the atmosphere.
+     */
     updateEffects(shapes, info, rocket, camera) {
         let planet = info.closestPlanet;
         let distance = Calc.distance(planet.x, planet.y, camera.x, camera.y) - (planet.size / 2);
@@ -58,7 +81,11 @@ class Renderer {
         planet.darkAlpha = newAlpha;
     }
 
+    /*
+     * Renders the given array of Shapes to the canvas, if they are visible.
+     */
     renderShapes(shapes) {
+        // TODO: add check whether the shapes are on scren or not.
         _.forEach(shapes, (shape) => {
             if (shape.visible) {
                 shape.prerender(this.ctx);
@@ -68,6 +95,9 @@ class Renderer {
         });
     }
 
+    /*
+     * Renders the shapes from a given camera position.
+     */
     render(shapes, cameraPos) {
         if (this.logging) {
             this.count++;
@@ -94,6 +124,10 @@ class Renderer {
         }, 1000);
     }
 
+    /*
+     * Render UI shapes that are fixed on the screen and above
+     * normal game shapes.
+     */
     renderUI(shapes) {
         let ctx = this.ctx;
         ctx.save();

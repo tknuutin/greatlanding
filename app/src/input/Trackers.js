@@ -1,4 +1,9 @@
 
+/*
+ * Various user input and environment trackers. Just keyboard for now.
+ */
+
+// Constants for keycodes on sane people browsers.
 const KEYS = {
     BACKSPACE: 8,
     SHIFT: 16,
@@ -14,6 +19,11 @@ const KEYS = {
     SPACE: 32
 };
 
+/*
+ * A tracker for the app key strokes. Fires callbacks when it notices a specific key.
+ * Object properties:
+ * - callbacks: An object with several callback functions like on(Forward/Backward/Left/Right)(Down/Up).
+ */
 class KeyboardTracker {
     constructor(callbacks) {
         this.callbacks = callbacks;
@@ -22,6 +32,9 @@ class KeyboardTracker {
         document.addEventListener('keyup', (evt) => this.onKeyUp(evt));
     }
 
+    /*
+     * React to a key down event. Fires appropriate callbacks.
+     */
     onKeyDown(evt) {
         switch (evt.keyCode) {
             case KEYS.W:
@@ -41,6 +54,9 @@ class KeyboardTracker {
         }
     }
 
+    /*
+     * React to a key up event. Fires appropriate callbacks.
+     */
     onKeyUp(evt) {
         switch (evt.keyCode) {
             case KEYS.W:

@@ -1,11 +1,16 @@
 
+/*
+ * Vector operations. Pretty much self-explanitory hopefully!
+ */
 
-// Due to floating point inaccuracy, sometimes vector math results would be off
-// a little - for example, after some angle calculation, Math.acos would be called
-// with 1.00000000002 or such. Round if difference from limits is not big.
-// I'm sure there's a better way to do this.
 const EPSILON = 0.00000000000001;
 
+/*
+ * Due to floating point inaccuracy, sometimes vector math results would be off
+ * a little - for example, after some angle calculation, Math.acos would be called
+ * with 1.00000000002 or such. Round if difference from limits is not big.
+ * I'm sure there's a better way to do this.
+ */
 function guardedAcos(inValue) {
     let value = inValue;
     if (inValue > 1 && ((inValue - 1) < EPSILON)) {
