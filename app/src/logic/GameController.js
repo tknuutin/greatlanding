@@ -22,6 +22,7 @@ class GameController {
         this.mapNum = 0;
 
         this.ui = opts.ui;
+        this.focused = true;
 
         let shapeMgr = new ShapeManager(opts.images);
         this.gameLogic = null;
@@ -30,6 +31,9 @@ class GameController {
 
         this.record = false;
         this.count = 0;
+
+        window.onfocus = this.onFocus.bind(this);
+        window.onblur = this.onBlur.bind(this);
 
         if (this.record) {
             setInterval(() => {
@@ -143,7 +147,7 @@ class GameController {
         let timeBetweenSteps = 1000 / FPS;
 
         // Max amount of render frames we can skip before we need to a render no matter what.
-        let maxFrameSkip = 10;
+        let maxFrameSkip = 1000;
 
         // When the next game step should happen.
         let nextGameStep = (new Date()).getTime();
@@ -151,7 +155,7 @@ class GameController {
         return () => {
             loops = 0;
 
-            while ((new Date()).getTime() > nextGameStep && loops < maxFrameSkip) {
+            while ((new Date()).getTime() > nextGameStep && loops < maxFrameSkip && this.focused) {
                 this.logicUpdate();
                 nextGameStep += timeBetweenSteps;
                 loops++;
@@ -176,6 +180,17 @@ class GameController {
         };
     }
 
+    onBlur() {
+        console.log('blur!');
+        this.focused = false;
+    }
+
+    onFocus() {
+        console.log('focus!');
+        this.focused = true;
+        // this.startLoop();
+    }
+
     /*
      * Start the game loop.
      */
@@ -183,7 +198,7 @@ class GameController {
         let step = this.createStepFunction();
         let nextFrame = () => {
             step();
-            if (!this.stopped) {
+            if (!this.stopped && this.focused) {
                 window.requestAnimationFrame(nextFrame);
             } else {
                 console.warn('Stopped!');
