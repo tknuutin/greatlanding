@@ -15,4 +15,4 @@ Game itself uses no external dependencies except Lodash for convenience methods.
 
 ### Demo
 
-[http://tarmoknuutinen.com/demos/greatlanding/index.html](Link to demo)
+[Link to demo](http://tarmoknuutinen.com/demos/greatlanding/index.html)
