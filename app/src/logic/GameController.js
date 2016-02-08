@@ -172,7 +172,7 @@ class GameController {
                     x: rocket.x, y: rocket.y
                 } : { x: 0, y: 0 };
 
-                this.renderer.updateEffects(shapes, this.lastInfo, rocket, camera);
+                this.renderer.updateEffects(shapes, this.lastInfo, camera);
                 this.renderer.render(shapes, camera);
                 this.renderer.renderUI(this.ui.getShapes());
                 this.stopped = this.lastInfo.stop;

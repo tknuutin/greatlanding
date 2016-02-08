@@ -72,8 +72,11 @@ class Renderer {
     /*
      * Update the state of all game visual effects, for example
      * the dark umbras around Planets when you get close in the atmosphere.
+     * - shapes: Array of shape instances. Parameter not used yet, will be in future
+     * - info: Game state object
+     * - camera: Camera position as x,y object
      */
-    updateEffects(shapes, info, rocket, camera) {
+    updateEffects(shapes, info, camera) {
         let planet = info.closestPlanet;
         let distance = Calc.distance(planet.x, planet.y, camera.x, camera.y) - (planet.size / 2);
         let darkLimit = planet.size / 10;
@@ -83,6 +86,7 @@ class Renderer {
 
     /*
      * Renders the given array of Shapes to the canvas, if they are visible.
+     * - shapes: Array of shapes
      */
     renderShapes(shapes) {
         // TODO: add check whether the shapes are on scren or not.
@@ -97,6 +101,8 @@ class Renderer {
 
     /*
      * Renders the shapes from a given camera position.
+     * - shapes: Array of shapes
+     * - cameraPos: Camera position as x,y object
      */
     render(shapes, cameraPos) {
         if (this.logging) {
@@ -127,6 +133,7 @@ class Renderer {
     /*
      * Render UI shapes that are fixed on the screen and above
      * normal game shapes.
+     * - shapes: Array of shapes
      */
     renderUI(shapes) {
         let ctx = this.ctx;
