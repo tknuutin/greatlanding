@@ -7,6 +7,9 @@ let { rads, distance } = require('math/Calc');
 // need to empty this between map changes?
 let CACHED_PRERENDER = {};
 
+const PLANET_CIRCLES = [0.75, 1];
+const PLANET_LINES = [0, 45, 90, 135];
+
 /*
  * Get the hash string of a planet.
  */
@@ -45,6 +48,12 @@ function drawCircleAndFill(ctx, size, color) {
     ctx.fill();
 }
 
+function strokeCircle(ctx, size, color) {
+    drawCircle(ctx, size);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+}
+
 /*
  * A large planet shape with gravity, atmosphere, and other effects.
  */
@@ -59,6 +68,7 @@ class Planet extends Shape {
         this.size = opts.size;
         this.regX = this.size / 2;
         this.regY = this.size / 2;
+        this.drawOnMinimap = true;
 
         // Atmosphere size
         this.atmsSize = opts.atmsSize;
@@ -152,6 +162,66 @@ class Planet extends Shape {
         ctx.restore();
     }
 
+    renderMinimapCircles(ctx) {
+        ctx.save();
+        _.each(PLANET_CIRCLES, (factor) => {
+            let size = factor * this.size;
+            let offset = (this.size - size) / 2;
+            ctx.translate(offset, offset);
+            strokeCircle(ctx, size, '#1A6D29');
+            ctx.translate(-offset, -offset);
+        });
+        ctx.restore();
+    }
+
+    renderMinimapLines(ctx) {
+        _.each(PLANET_LINES, (rot) => {
+            ctx.save();
+
+            ctx.translate(this.size / 2, this.size / 2);
+            ctx.rotate(rads(rot));
+
+            ctx.translate(0, -(this.size / 2));
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, this.size);
+            ctx.closePath();
+
+            ctx.strokeStyle = '#1A6D29';
+            ctx.stroke();
+
+            ctx.restore();
+        });
+    }
+
+    renderMinimapPointers(ctx) {
+        if (this.isTarget && this.landingPadPoint && this.landingPadVisible) {
+            let point = this.landingPadPoint;
+
+            ctx.save();
+
+            ctx.translate(this.size / 2, this.size / 2);
+            ctx.translate(-this.x, -this.y);
+            ctx.translate(point.x, point.y);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff0000';
+            ctx.arc(0, 0, 200, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.restore();
+        }
+    }
+
+    renderMinimap(ctx) {
+        ctx.lineWidth = 100;
+        this.renderMinimapCircles(ctx);
+        this.renderMinimapLines(ctx);
+        this.renderMinimapPointers(ctx);
+    }
+
     /*
      * Get the x,y point on the surface at a certain angle.
      * - angle: Angle in degrees
@@ -170,10 +240,21 @@ class Planet extends Shape {
      * - end: End of the colored portion in degrees
      * - color: Color as a hex string.
      */
-    paintSurface(start, end, color) {
-        this.paints.push({
-            start, end, color
-        })
+    paintSurface(start, end, color, info) {
+        let obj = {
+            start, end, color, info
+        };
+
+        this.paints.push(obj);
+
+        // A bit hacky, set info here to display the landing pad
+        if (info && info.isLandingPad) {
+            this.landingPadPoint = this.getSurfacePoint(obj.start + ((obj.end - obj.start) / 2));
+            this.landingPadVisible = true;
+            setInterval(() => {
+                this.landingPadVisible = !this.landingPadVisible;
+            }, 700);
+        }
     }
 
     /*

@@ -175,6 +175,7 @@ class GameController {
                 this.renderer.updateEffects(shapes, this.lastInfo, camera);
                 this.renderer.render(shapes, camera);
                 this.renderer.renderUI(this.ui.getShapes());
+                this.renderer.renderMinimap(shapes, camera);
                 this.stopped = this.lastInfo.stop;
             }
         };

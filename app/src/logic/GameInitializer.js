@@ -78,7 +78,9 @@ class GameInitializer {
         basePlanet.paintSurface(baseAngle - baseWidth / 2, baseAngle + baseWidth / 2, '#7DD4AF');
 
         let targetPlanet = _.find(planets, (planet) => planet.isTarget);
-        targetPlanet.paintSurface(targetAngle - targetWidth / 2, targetAngle + targetWidth / 2, '#D47D83');
+        targetPlanet.paintSurface(targetAngle - targetWidth / 2, targetAngle + targetWidth / 2, '#D47D83', {
+            isLandingPad: true
+        });
 
         return planets;
     }

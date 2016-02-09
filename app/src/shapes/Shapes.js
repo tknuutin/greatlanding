@@ -77,6 +77,10 @@ class Shape {
 
         ctx.restore();
     }
+
+    postrenderMinimap(ctx) {
+        ctx.restore();
+    }
 }
 
 /*

@@ -133,12 +133,49 @@ class Renderer {
     /*
      * Render UI shapes that are fixed on the screen and above
      * normal game shapes.
-     * - shapes: Array of shapes
+     * - uiShapes: Array of shapes
      */
-    renderUI(shapes) {
+    renderUI(uiShapes) {
         let ctx = this.ctx;
         ctx.save();
-        this.renderShapes(shapes);
+        this.renderShapes(uiShapes);
+        ctx.restore();
+    }
+
+    renderMinimap(gameShapes, cameraPos) {
+        let w = 100;
+        let h = 100;
+        let margin = 10;
+        let ctx = this.ctx;
+        let scale = 100;
+
+        ctx.save();
+
+        ctx.translate(this.width - margin - w, margin);
+
+        ctx.strokeStyle = '#1A6D29';
+        ctx.strokeRect(0, 0, w, h);
+
+        ctx.beginPath();
+        ctx.lineTo(w, 0);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.lineTo(0, 0)
+        ctx.clip();
+
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w * 2, h * 2);
+
+        ctx.scale(1 / scale, 1 / scale);
+        ctx.translate(-cameraPos.x + (w / 2 * scale), -cameraPos.y + (h / 2 * scale));
+
+        let shapes = _.filter(gameShapes, (shape) => shape.drawOnMinimap);
+        _.each(shapes, (shape) => {
+            shape.prerender(ctx);
+            shape.renderMinimap(ctx);
+            shape.postrenderMinimap(ctx);
+        });
+
         ctx.restore();
     }
 }

@@ -25,6 +25,7 @@ class Rocket extends Sprite {
         this.cutEngines = false;
 
         this.fuel = ROCKET.START_FUEL;
+        this.drawOnMinimap = true;
 
         this.points = [
             { x: 0, y: -this.height / 2 },
@@ -181,6 +182,21 @@ class Rocket extends Sprite {
         smoke.prerender(ctx);
         smoke.render(ctx);
         smoke.postrender(ctx);
+    }
+
+    renderMinimap(ctx) {
+        ctx.scale(15, 15);
+        ctx.translate(0, -25); // regpoint
+        ctx.beginPath();
+        ctx.lineTo(30, 50);
+        ctx.lineTo(-30, 50);
+        ctx.lineTo(0, -50);
+        ctx.closePath();
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#ffffff';
+
+        ctx.stroke();
+        ctx.translate(50, 50); // regpoint
     }
 
     /*
