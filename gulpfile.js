@@ -17,6 +17,7 @@ var path = require('path');
 var join = path.join;
 
 var config = {
+    baseFolder: './app/',
     sourceFolder: './app/src',
     buildFolder: './public',
     bundleName: 'app.js'
@@ -27,7 +28,7 @@ gulp.task('clean', function(cb) {
 });
 
 gulp.task('copy', function(){
-    gulp.src(join(config.sourceFolder, '/assets/**/*'), { base: join(config.sourceFolder, 'assets/') })
+    gulp.src(join(config.baseFolder, 'assets/**/*'), { base: join(config.baseFolder, 'assets/') })
         .pipe(gulp.dest(join(config.buildFolder, 'assets')));
 })
 
