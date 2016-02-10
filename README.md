@@ -3,6 +3,8 @@ HTML5 / ES6 based game where you fly a rocket and try to land on another planet.
 
 Use W, A, S, D to activate engines and try to land safely at the target landing pad.
 
+Has not been optimized for performance, hope it doesn't explode your computer!
+
 ### Installing
 
 Use `npm install .` to install all dependencies. Run `gulp build` to build the app. Open `index.html` to view.
