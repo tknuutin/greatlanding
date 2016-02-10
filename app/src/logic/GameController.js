@@ -20,6 +20,8 @@ class GameController {
         this.images = opts.images;
         this.renderer = opts.renderer;
         this.mapNum = 0;
+        this.onGameLoaded = opts.onGameLoaded;
+        this.hasRendered = false;
 
         this.ui = opts.ui;
         this.focused = true;
@@ -182,6 +184,14 @@ class GameController {
                 this.renderer.render(shapes, camera);
                 this.renderer.renderUI(this.ui.getShapes());
                 this.renderer.renderMinimap(shapes, camera);
+
+                // Right now only considering the game loaded once we render once,
+                // because of all our prerendering stuff!
+                if (!this.hasRendered) {
+                    this.hasRendered = true;
+                    this.onGameLoaded();
+                }
+
                 this.stopped = this.lastInfo.stop;
             }
         };

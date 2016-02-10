@@ -16,7 +16,6 @@ let { GameUI } = require('render/GameUI');
  */
 function startApp(opts) {
     let { canvas, images } = opts;
-
     let renderer = new Renderer({
         background: images['spacebg.jpg'],
         canvas,
@@ -24,7 +23,11 @@ function startApp(opts) {
     });
 
     let game = new GameController({
-        images, ui: new GameUI(), renderer
+        images, ui: new GameUI(), renderer,
+        onGameLoaded: () => {
+            let prvClass = canvas.getAttribute('class');
+            canvas.setAttribute('class', prvClass + ' loaded');
+        }
     });
 
     let kb = new KeyboardTracker({
