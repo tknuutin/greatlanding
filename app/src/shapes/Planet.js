@@ -164,6 +164,8 @@ class Planet extends Shape {
 
     renderMinimapCircles(ctx) {
         ctx.save();
+        drawCircleAndFill(ctx, this.size, '#000');
+
         _.each(PLANET_CIRCLES, (factor) => {
             let size = factor * this.size;
             let offset = (this.size - size) / 2;
@@ -207,9 +209,11 @@ class Planet extends Shape {
 
             ctx.beginPath();
             ctx.strokeStyle = '#ff0000';
+            ctx.fillStyle = '#000000';
             ctx.arc(0, 0, 200, 0, Math.PI * 2, true);
             ctx.closePath();
             ctx.stroke();
+            ctx.fill();
 
             ctx.restore();
         }

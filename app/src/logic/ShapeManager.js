@@ -7,47 +7,7 @@ let { clampRot, distancePoints } = require('math/Calc');
 let V = require('math/Vector');
 
 let { ROCKET } = require('config/GameConfig');
-
-
-// ----------------------------------------------------
-// Gravity stuff, should move this out of here
-
-// Gravity dampening factor, purely arbitrary value selected
-// to get a nice gameplay feel.
-const GRAV_DAMP = 75;
-
-/*
- * Calculates the gravity at a specific distance from a planet's surface.
- * Returns a number.
- * - distance: Distance from the planet's surface
- * - maxDist: Maximum distance for the gravity well. Yes I know that's not how gravity works
- * - surfaceGrav: Gravity at the planet surface.
- */
-function getGravity(distance, maxDist, surfaceGrav) {
-    if (distance > maxDist) {
-        return 0;
-    }
-
-    if (distance <= 0) {
-        return surfaceGrav;
-    }
-
-    // Lame linear function because I'm lazy and it works gameplay wise!
-    // TODO: experiment with more fun gravity algorithms
-    return ((-(1 / (maxDist / 10)) * distance) + surfaceGrav) / GRAV_DAMP;
-}
-
-/*
- * Get the strength of gravity effected on a point by a given planet.
- * Returns a Number.
- * - point: An object with x,y properties.
- * - planet: Planet instance.
- */
-function getGravityStrenghtForPoint(point, planet) {
-    let dist = distancePoints(point, planet) - (planet.size / 2);
-    return getGravity(dist, planet.gravMaxDist, planet.gravity);
-}
-// ----------------------------------------------------
+let { getGravityStrenghtForPoint, applyGravity } = require('math/GravityUtil');
 
 /*
  * Shape managing class. All shapes and entities should be registered
@@ -138,14 +98,10 @@ class ShapeManager {
      */
     applyGravity(shape) {
         let planet = this.getClosestPlanet(shape).planet;  // Lazy I know
+        let g = applyGravity(planet, shape);
 
-        let strength = getGravityStrenghtForPoint(shape, planet);
-        let planetDirection = V.unit(V.sub(planet, shape));
-
-        let gravity = V.mul(planetDirection, strength);
-
-        shape.move.v.x += gravity.x;
-        shape.move.v.y += gravity.y;
+        shape.move.v.x += g.x;
+        shape.move.v.y += g.y;
     }
 
     /*

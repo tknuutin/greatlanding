@@ -1,6 +1,7 @@
 
 let _ = require('lodash');
 let Calc = require('math/Calc');
+let { renderMinimapGravityGrid } = require('shapes/GravityGrid');
 
 // How slow the background moves compared to the camera.
 const BG_MOVE_FACTOR = 8;
@@ -82,6 +83,12 @@ class Renderer {
         let darkLimit = planet.size / 10;
         let newAlpha = Math.max(Math.min((darkLimit - distance) / ((darkLimit / 3) * 2), 1), 0);
         planet.darkAlpha = newAlpha;
+
+        _.each(shapes, (shape) => {
+            if (shape.updateEffect) {
+                shape.updateEffect(info, camera);
+            }
+        });
     }
 
     /*
@@ -91,7 +98,7 @@ class Renderer {
     renderShapes(shapes) {
         // TODO: add check whether the shapes are on scren or not.
         _.forEach(shapes, (shape) => {
-            if (shape.visible) {
+            if (!shape.noRender && shape.visible) {
                 shape.prerender(this.ctx);
                 shape.render(this.ctx);
                 shape.postrender(this.ctx);
@@ -128,6 +135,10 @@ class Renderer {
             console.log('FPS:', this.count);
             this.count = 0;
         }, 1000);
+    }
+
+    setUIEffectInfo(info) {
+        this.uiEffectInfo = info;
     }
 
     /*
@@ -167,6 +178,10 @@ class Renderer {
         ctx.fillRect(0, 0, w * 2, h * 2);
 
         ctx.scale(1 / scale, 1 / scale);
+
+        // Wow this should probably be prerendered!
+        renderMinimapGravityGrid(ctx, cameraPos, w, h, scale, this.uiEffectInfo.planets);
+
         ctx.translate(-cameraPos.x + (w / 2 * scale), -cameraPos.y + (h / 2 * scale));
 
         let shapes = _.filter(gameShapes, (shape) => shape.drawOnMinimap);

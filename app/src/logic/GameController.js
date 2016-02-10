@@ -101,6 +101,12 @@ class GameController {
 
         this.gameLogic = new GameLogic(mapInfo, this.images, this.shapeManager);
         this.ui.createIndicator(mapInfo.targetPoint, 'Target');
+
+        // This is hacky - should generate the whole effect beforehand and pass it to renderer
+        // as a regular UI shape
+        this.renderer.setUIEffectInfo({
+            planets: this.shapeManager.planets
+        })
     }
 
     /*
@@ -182,14 +188,11 @@ class GameController {
     }
 
     onBlur() {
-        console.log('blur!');
         this.focused = false;
     }
 
     onFocus() {
-        console.log('focus!');
         this.focused = true;
-        // this.startLoop();
     }
 
     /*
@@ -199,8 +202,10 @@ class GameController {
         let step = this.createStepFunction();
         let nextFrame = () => {
             step();
-            if (!this.stopped && this.focused) {
-                window.requestAnimationFrame(nextFrame);
+            if (!this.stopped) {
+                if (this.focused) {
+                    window.requestAnimationFrame(nextFrame);
+                }
             } else {
                 console.warn('Stopped!');
             }
