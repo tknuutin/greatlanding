@@ -25,8 +25,10 @@ function startApp(opts) {
     let game = new GameController({
         images, ui: new GameUI(), renderer,
         onGameLoaded: () => {
-            let prvClass = canvas.getAttribute('class');
-            canvas.setAttribute('class', prvClass + ' loaded');
+            canvas.classList.add('loaded');
+        },
+        onGameLoading: () => {
+            canvas.classList.remove('loaded');
         }
     });
 
@@ -41,7 +43,8 @@ function startApp(opts) {
         onRightUp: game.keyInputs.onRightUp,
         onLeftDown: game.keyInputs.onLeftDown,
         onLeftUp: game.keyInputs.onLeftUp,
-        onSpace: game.keyInputs.onSpace
+        onSpace: game.keyInputs.onSpace,
+        onEnter: game.keyInputs.onEnter
     });
 
     game.startLoop();

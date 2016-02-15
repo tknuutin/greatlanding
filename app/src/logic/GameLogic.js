@@ -53,7 +53,7 @@ function makeExplosion(img, position, onEnded) {
  */
 function getWinnerMessage(info) {
     let fuel = Math.round(info.rocket.getFuel() * 100) / 100;
-    return `You reached the target with ${fuel}% fuel.`;
+    return `You reached the target with ${fuel}% fuel.\nPress enter to go to the next level.`;
 }
 
 /*
@@ -85,10 +85,23 @@ class GameLogic {
         this.images = images;
         this.shapeMgr = shapeMgr;
         this.shouldStop = false;
+        window.cheatConsole = (msg) => {
+            if (msg === 'nextlevel') {
+                this.cheatActivated = true;
+            }
+        };
 
         this.crashed = false;
 
         this.uiMessage = null;
+    }
+
+    cheatToNextLevel(info) {
+        let { rocket } = info;
+        rocket.stop();
+        rocket.landed = true;
+        this.goToNextLevel(info);
+        return info;
     }
 
     /*
@@ -137,6 +150,17 @@ class GameLogic {
         this.shapeMgr.addShape(expl);
     }
 
+    goToNextLevel(info) {
+        info.nextLevel = true;
+        setTimeout(() => {
+            this.addUIMessage({
+                header: 'A winner is you!',
+                message: getWinnerMessage(info),
+                showRestartTip: true
+            });
+        }, 300);
+    }
+
     /*
      * Resolve rocket landing on a planet.
      * - info: Game state.
@@ -145,7 +169,11 @@ class GameLogic {
      */
     resolveLand(info, rocket, planet) {
         let finalRot = degs(V.angle(V.sub(planet, rocket), { x: 0, y: 5 }));
-        rocket.rotation = (planet.x > rocket.x) ? -(finalRot) : finalRot;
+        let leftSide = planet.x > rocket.x;
+        if (leftSide) {
+            finalRot = 360 - finalRot;
+        }
+        rocket.rotation = finalRot;
         info.landed = true;
         rocket.launched = false;
         rocket.stop();
@@ -156,13 +184,7 @@ class GameLogic {
         let targetStop = targetStart + tWidth;
 
         if (planet.isTarget && (finalRot > targetStart && finalRot < targetStop)) {
-            setTimeout(() => {
-                this.addUIMessage({
-                    header: 'A winner is you!',
-                    message: getWinnerMessage(info),
-                    showRestartTip: true
-                });
-            }, 300);
+            this.goToNextLevel(info);
         }
     }
 
@@ -176,14 +198,13 @@ class GameLogic {
         let rocket = info.rocket;
         let { lateral, vertical, angle } = info;
         let planet = CollisionManager.checkRocketCollision(info.rocket, info.planets);
+
         if (planet) {
             if (Math.abs(lateral) > LIMIT_LATERAL || vertical > LIMIT_VERTICAL || angle > LIMIT_ANGLE) {
                 this.resolveCrash(info, rocket);
             } else {
                 this.resolveLand(info, rocket, planet);
             }
-
-            info.gameOver = planet.isTarget || info.crashed;
         }
         return info;
     }
@@ -217,7 +238,13 @@ class GameLogic {
             info.lateral = getPlanetLateralSpeed(closestPlanet, rocket);
             info.vertical = getPlanetVerticalSpeed(closestPlanet, rocket);
             info.angle = getRocketAngleToPlanet(closestPlanet, rocket);
-            info = this.checkForPlanetContact(info);
+
+            if (this.cheatActivated) {
+                this.cheatActivated = false;
+                info = this.cheatToNextLevel(info);
+            } else {
+                info = this.checkForPlanetContact(info);
+            }
         }
 
         if (this.uiMessage) {

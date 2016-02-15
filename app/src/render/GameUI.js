@@ -203,7 +203,11 @@ class UIMessage {
     setMessage(info) {
         this.showRestartTip = info.showRestartTip;
         this.header.setText(info.header);
-        this.message.setText(info.message);
+        let msg = this.message;
+        let resetInfo = this.resetInfo;
+
+        msg.setText(info.message);
+        resetInfo.y = msg.y + msg.lines.length * msg.lineHeight + 5;
 
         let headerWidth = this.header.getWidth();
         let messageWidth = this.message.getWidth();
@@ -211,6 +215,7 @@ class UIMessage {
         let margin = 15;
         this.box.x = ((SCREEN.WIDTH - longer) / 2) - margin;
         this.box.width = longer + margin * 2;
+        this.box.height = ((resetInfo.y + resetInfo.lineHeight + 5) - this.box.y);
     }
 
     getShapes() {

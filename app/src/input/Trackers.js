@@ -9,6 +9,7 @@ const KEYS = {
     SHIFT: 16,
     LEFT: 37,
     UP: 38,
+    ENTER: 13,
     RIGHT: 39,
     DOWN: 40,
     ESC: 27,
@@ -73,6 +74,9 @@ class KeyboardTracker {
                 break;
             case KEYS.SPACE:
                 this.callbacks.onSpace();
+
+            case KEYS.ENTER:
+                this.callbacks.onEnter();
             default:
                 break;
         }

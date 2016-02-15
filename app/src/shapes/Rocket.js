@@ -24,7 +24,8 @@ class Rocket extends Sprite {
         // Should cut all engine effects immediately?
         this.cutEngines = false;
 
-        this.fuel = ROCKET.START_FUEL;
+        this.startFuel = opts.startFuel;
+        this.fuel = this.startFuel;
         this.drawOnMinimap = true;
 
         this.points = [
@@ -115,7 +116,7 @@ class Rocket extends Sprite {
      * Get the current fuel as percentage from the starting fuel.
      */
     getFuel() {
-        return (this.fuel / ROCKET.START_FUEL) * 100;
+        return (this.fuel / this.startFuel) * 100;
     }
 
     /*

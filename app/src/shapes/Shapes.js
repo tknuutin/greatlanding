@@ -172,7 +172,7 @@ class TextNode extends Shape {
     constructor(opts = {}) {
         super(opts);
 
-        this.text = opts.text;
+        this.text = opts.text || '';
         this.fontSize = opts.fontSize || 14;
         this.fontStyle = opts.fontStyle || 'normal';
         this.fontWeight = opts.fontWeight || 'normal';
@@ -184,14 +184,16 @@ class TextNode extends Shape {
         this.textAlign = opts.textAlign || 'left';
         this.textBaseline = opts.textBaseline || 'top';
 
-        this.lines = [this.text];
+        this.lines = [];
+        this.longestLine = null;
+        this.setText(this.text);
     }
 
     /*
      * Calculate the current width of the rendered text.
      */
     getWidth() {
-        return measureText(this.lines[0], this.formatted);
+        return measureText(this.longestLine, this.formatted);
     }
 
     /*
@@ -199,9 +201,13 @@ class TextNode extends Shape {
      */
     setText(text) {
         this.text = text;
-
-        // Only support single line textnodes for now.
-        this.lines[0] = text;
+        this.lines = text.split('\n');
+        this.longestLine = _.reduce(this.lines, (result, line) => {
+            if (line.length > result.length) {
+                return line;
+            }
+            return result;
+        }, this.lines[0]);
     }
 
     render(ctx) {

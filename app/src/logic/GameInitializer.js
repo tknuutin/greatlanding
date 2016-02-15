@@ -8,6 +8,27 @@ let { ROCKET } = require('config/GameConfig');
 const MAPS = [
     {
         planets: [
+             {
+                name: 'Base',
+                x: 200, y: 1700,
+                gravity: 9,
+                size: 3200, fillStyle: '#85889E',
+                atmsSize: 3800,
+                isBase: true,
+                isTarget: true,
+                // In RGB to avoid converting when we use a rgba string in a gradient
+                atmsColor: [179, 232, 255]
+            },
+        ],
+        baseWidth: 5,
+        basePlanetAngle: 30,
+
+        targetPlanetAngle: 330,
+        targetWidth: 5,
+        startFuel: 140
+    },
+    {
+        planets: [
             {
                 name: 'Base',
                 x: 200, y: 1700,
@@ -27,6 +48,16 @@ const MAPS = [
                 fillStyle: '#9E8593',
                 atmsSize: 3400,
                 atmsColor: [255, 207, 253]
+            },
+            {
+                name: 'Weird planet',
+                x: 7000, y: -100,
+                gravity: 15,
+                gravMaxSist: 4000,
+                size: 1800,
+                fillStyle: '#4A5D63',
+                atmsSize: 2200,
+                atmsColor: [128, 162, 173]
             }
         ],
 
@@ -34,7 +65,8 @@ const MAPS = [
         basePlanetAngle: 340,
 
         targetPlanetAngle: 170,
-        targetWidth: 5
+        targetWidth: 5,
+        startFuel: 275
     }
 ];
 
@@ -95,7 +127,8 @@ class GameInitializer {
         let startPos = getRocketStartPos(angle, startPlanet);
         return {
             x: startPos.x, y: startPos.y,
-            rotation: angle
+            rotation: angle,
+            startFuel: gameMap.startFuel
         };
     }
 
