@@ -23,6 +23,8 @@ class GameController {
         this.onGameLoaded = opts.onGameLoaded;
         this.hasRendered = false;
 
+        this.loopActive = true;
+
         this.ui = opts.ui;
         this.focused = true;
 
@@ -108,7 +110,14 @@ class GameController {
         // as a regular UI shape
         this.renderer.setUIEffectInfo({
             planets: this.shapeManager.planets
-        })
+        });
+    }
+
+    setFocused(value) {
+        this.focused = value;
+        if (value && !this.loopActive) {
+            this.startLoop();
+        }
     }
 
     /*
@@ -134,6 +143,30 @@ class GameController {
         } catch (e) {
             console.error(e.stack);
             this.stopped = true;
+        }
+    }
+
+    renderUpdate() {
+        let rocket = this.shapeManager.getRocket();
+        if (rocket) {
+            this.ui.update(this.lastInfo);
+        }
+
+        let shapes = this.shapeManager.getShapes();
+        let camera = rocket ? {
+            x: rocket.x, y: rocket.y
+        } : { x: 0, y: 0 };
+
+        this.renderer.updateEffects(shapes, this.lastInfo, camera);
+        this.renderer.render(shapes, camera);
+        this.renderer.renderUI(this.ui.getShapes());
+        this.renderer.renderMinimap(shapes, camera);
+
+        // Right now only considering the game loaded once we render once,
+        // because of all our prerendering stuff!
+        if (!this.hasRendered) {
+            this.hasRendered = true;
+            this.onGameLoaded();
         }
     }
 
@@ -163,58 +196,44 @@ class GameController {
         return () => {
             loops = 0;
 
-            while ((new Date()).getTime() > nextGameStep && loops < maxFrameSkip && this.focused) {
+            while (
+                ((new Date()).getTime() > nextGameStep) &&
+                (loops < maxFrameSkip && this.focused)
+            ) {
+
                 this.logicUpdate();
                 nextGameStep += timeBetweenSteps;
                 loops++;
             }
 
             if (loops) {
-                let rocket = this.shapeManager.getRocket();
-                if (rocket) {
-                    this.ui.update(this.lastInfo);
-                }
-
-                let shapes = this.shapeManager.getShapes();
-                let camera = rocket ? {
-                    x: rocket.x, y: rocket.y
-                } : { x: 0, y: 0 };
-
-                this.renderer.updateEffects(shapes, this.lastInfo, camera);
-                this.renderer.render(shapes, camera);
-                this.renderer.renderUI(this.ui.getShapes());
-                this.renderer.renderMinimap(shapes, camera);
-
-                // Right now only considering the game loaded once we render once,
-                // because of all our prerendering stuff!
-                if (!this.hasRendered) {
-                    this.hasRendered = true;
-                    this.onGameLoaded();
-                }
-
+                this.renderUpdate();
                 this.stopped = this.lastInfo.stop;
             }
         };
     }
 
     onBlur() {
-        this.focused = false;
+        this.setFocused(false);
     }
 
     onFocus() {
-        this.focused = true;
+        this.setFocused(true);
     }
 
     /*
      * Start the game loop.
      */
     startLoop() {
+        this.loopActive = true;
         let step = this.createStepFunction();
         let nextFrame = () => {
             step();
             if (!this.stopped) {
                 if (this.focused) {
                     window.requestAnimationFrame(nextFrame);
+                } else {
+                    this.loopActive = false;
                 }
             } else {
                 console.warn('Stopped!');
