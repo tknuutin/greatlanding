@@ -48,6 +48,9 @@ function drawCircleAndFill(ctx, size, color) {
     ctx.fill();
 }
 
+/*
+ * Draw a stroked circle with the given size and color to the context.
+ */
 function strokeCircle(ctx, size, color) {
     drawCircle(ctx, size);
     ctx.strokeStyle = color;
@@ -162,6 +165,9 @@ class Planet extends Shape {
         ctx.restore();
     }
 
+    /*
+     * For minimap rendering, render circles of the planet.
+     */
     renderMinimapCircles(ctx) {
         ctx.save();
         drawCircleAndFill(ctx, this.size, '#000');
@@ -176,6 +182,9 @@ class Planet extends Shape {
         ctx.restore();
     }
 
+    /*
+     * For minimap rendering, render lines of the planet.
+     */
     renderMinimapLines(ctx) {
         _.each(PLANET_LINES, (rot) => {
             ctx.save();
@@ -197,6 +206,9 @@ class Planet extends Shape {
         });
     }
 
+    /*
+     * For minimap rendering, render any markers on the planet surface.
+     */
     renderMinimapPointers(ctx) {
         if (this.isTarget && this.landingPadPoint && this.landingPadVisible) {
             let point = this.landingPadPoint;
@@ -219,6 +231,9 @@ class Planet extends Shape {
         }
     }
 
+    /*
+     * Render the planet on the minimap.
+     */
     renderMinimap(ctx) {
         ctx.lineWidth = 100;
         this.renderMinimapCircles(ctx);

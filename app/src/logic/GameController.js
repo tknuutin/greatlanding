@@ -17,22 +17,41 @@ const FPS = GameConfig.FPS;
  */
 class GameController {
     constructor(opts) {
+        // Preloaded images.
         this.images = opts.images;
+
+        // Renderer instance.
         this.renderer = opts.renderer;
+
+        // Current map number. TODO: add other maps!
         this.mapNum = 0;
+
+        // Callback to fire when the game initially loads.
         this.onGameLoaded = opts.onGameLoaded;
+
+        // Have we rendered once yet?
         this.hasRendered = false;
 
+        // Is the game loop running?
         this.loopActive = true;
 
+        // UI instance.
         this.ui = opts.ui;
+
+        // Is the user focused on the game window?
         this.focused = true;
 
+        // The ShapeManager instance for managing all game Shape instances.
         let shapeMgr = new ShapeManager(opts.images);
-        this.gameLogic = null;
-        this.initializer = new GameInitializer();
         this.shapeManager = shapeMgr;
 
+        // GameLogic instance for tracking the state of a single game round.
+        this.gameLogic = null;
+
+        // The game initializer instance that takes care of initializing and restarting a map.
+        this.initializer = new GameInitializer();
+
+        // Debug stuff
         this.record = false;
         this.count = 0;
 
@@ -45,6 +64,7 @@ class GameController {
             }, 1000);
         }
 
+        // Callbacks for key inputs.
         this.keyInputs = _.chain({
             onForwardDown: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.main, true);
@@ -113,6 +133,10 @@ class GameController {
         });
     }
 
+    /*
+     * Set whether the game window is considered to in focus or not.
+     * - value: Boolean
+     */
     setFocused(value) {
         this.focused = value;
         if (value && !this.loopActive) {
@@ -146,6 +170,9 @@ class GameController {
         }
     }
 
+    /*
+     * Renders the game state by calling relevant renderer instance functions.
+     */
     renderUpdate() {
         let rocket = this.shapeManager.getRocket();
         if (rocket) {
@@ -200,7 +227,6 @@ class GameController {
                 ((new Date()).getTime() > nextGameStep) &&
                 (loops < maxFrameSkip && this.focused)
             ) {
-
                 this.logicUpdate();
                 nextGameStep += timeBetweenSteps;
                 loops++;
@@ -213,10 +239,16 @@ class GameController {
         };
     }
 
+    /*
+     * React to the user losing focus on the game window.
+     */
     onBlur() {
         this.setFocused(false);
     }
 
+    /*
+     * React to the user regaining focus on the game window.
+     */
     onFocus() {
         this.setFocused(true);
     }

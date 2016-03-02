@@ -6,6 +6,16 @@ let { renderMinimapGravityGrid } = require('shapes/GravityGrid');
 // How slow the background moves compared to the camera.
 const BG_MOVE_FACTOR = 8;
 
+// Yep.
+const MINIMAP_WIDTH = 100;
+const MINIMAP_HEIGHT = 100;
+
+// Margin from the borders of the screen.
+const MINIMAP_MARGIN = 10;
+
+// How much zoomed out are we on the minimap?
+const MINIMAP_SCALE = 100;
+
 /*
  * The Canvas renderer instance. Takes in an options object with the following properties:
  * - canvas: A canvas HTML Node.
@@ -129,6 +139,9 @@ class Renderer {
         ctx.restore();
     }
 
+    /*
+     * Starts to log fps into the console on an interval. For debug!
+     */
     logFps() {
         this.logging = true;
         setInterval(() => {
@@ -137,6 +150,11 @@ class Renderer {
         }, 1000);
     }
 
+    /*
+     * Set the current data the UI should use to render UI effects.
+     * Hacky, due a refactor.
+     * - info: An object with UI effect info such as planets.
+     */
     setUIEffectInfo(info) {
         this.uiEffectInfo = info;
     }
@@ -153,12 +171,17 @@ class Renderer {
         ctx.restore();
     }
 
+    /*
+     * Render the game minimap with the game shapes, following the game camera position.
+     * - gameShapes: An array of shape instances.
+     * - cameraPos: An object with x, y coordinates.
+     */
     renderMinimap(gameShapes, cameraPos) {
-        let w = 100;
-        let h = 100;
-        let margin = 10;
+        let w = MINIMAP_WIDTH;
+        let h = MINIMAP_HEIGHT;
+        let margin = MINIMAP_MARGIN;
         let ctx = this.ctx;
-        let scale = 100;
+        let scale = MINIMAP_SCALE;
 
         ctx.save();
 
@@ -171,7 +194,7 @@ class Renderer {
         ctx.lineTo(w, 0);
         ctx.lineTo(w, h);
         ctx.lineTo(0, h);
-        ctx.lineTo(0, 0)
+        ctx.lineTo(0, 0);
         ctx.clip();
 
         ctx.fillStyle = '#000';
@@ -184,11 +207,12 @@ class Renderer {
 
         ctx.translate(-cameraPos.x + (w / 2 * scale), -cameraPos.y + (h / 2 * scale));
 
-        let shapes = _.filter(gameShapes, (shape) => shape.drawOnMinimap);
-        _.each(shapes, (shape) => {
-            shape.prerender(ctx);
-            shape.renderMinimap(ctx);
-            shape.postrenderMinimap(ctx);
+        _.each(gameShapes, (shape) => {
+            if (shape.drawOnMinimap) {
+                shape.prerender(ctx);
+                shape.renderMinimap(ctx);
+                shape.postrenderMinimap(ctx);
+            }
         });
 
         ctx.restore();
