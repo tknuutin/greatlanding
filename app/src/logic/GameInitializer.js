@@ -27,6 +27,16 @@ const MAPS = [
                 fillStyle: '#9E8593',
                 atmsSize: 3400,
                 atmsColor: [255, 207, 253]
+            },
+            {
+                name: 'Some rock',
+                x: 6700, y: -200,
+                gravity: 13.5,
+                gravMaxDist: 1600,
+                size: 2200,
+                fillStyle: '#A0BAA4',
+                atmsSize: 2900,
+                atmsColor: [192, 240, 220]
             }
         ],
 
