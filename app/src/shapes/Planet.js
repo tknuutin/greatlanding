@@ -315,10 +315,10 @@ class Planet extends Shape {
         ctx.restore();
     }
 
-    postrender(ctx) {
-        super.postrender(ctx);
+    afterRender(ctx) {
+        super.afterRender(ctx);
 
-        this.prerender(ctx);
+        this.beforeRender(ctx);
         this.renderPaints(ctx);
         ctx.restore();
     }

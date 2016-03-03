@@ -39,7 +39,7 @@ class Shape {
      * Initialize the context for drawing this shape, for example
      * scale and rotation.
      */
-    prerender(ctx) {
+    beforeRender(ctx) {
         ctx.save();
         ctx.translate(this.x - this.regX, this.y - this.regY);
 
@@ -63,7 +63,7 @@ class Shape {
     /*
      * Do common draw processes such as fill and de-initialize the draw context.
      */
-    postrender(ctx) {
+    afterRender(ctx) {
         if (this.fillStyle) {
             ctx.fillStyle = this.fillStyle;
             ctx.fill();
@@ -78,7 +78,7 @@ class Shape {
         ctx.restore();
     }
 
-    postrenderMinimap(ctx) {
+    afterRenderMinimap(ctx) {
         ctx.restore();
     }
 }
@@ -218,7 +218,7 @@ class TextNode extends Shape {
         });
     }
 
-    postrender(ctx) {
+    afterRender(ctx) {
         ctx.restore();
     }
 }

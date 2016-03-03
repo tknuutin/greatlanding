@@ -154,8 +154,8 @@ class EngineSmoke extends Shape {
         ctx.restore();
     }
 
-    prerender(ctx) {
-        super.prerender(ctx);
+    beforeRender(ctx) {
+        super.beforeRender(ctx);
     }
 
     render(ctx) {

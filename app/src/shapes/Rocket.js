@@ -179,9 +179,9 @@ class Rocket extends Sprite {
      * Render a smoke effect on the context.
      */
     renderSmoke(ctx, smoke) {
-        smoke.prerender(ctx);
+        smoke.beforeRender(ctx);
         smoke.render(ctx);
-        smoke.postrender(ctx);
+        smoke.afterRender(ctx);
     }
 
     renderMinimap(ctx) {

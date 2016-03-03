@@ -109,9 +109,9 @@ class Renderer {
         // TODO: add check whether the shapes are on scren or not.
         _.forEach(shapes, (shape) => {
             if (!shape.noRender && shape.visible) {
-                shape.prerender(this.ctx);
+                shape.beforeRender(this.ctx);
                 shape.render(this.ctx);
-                shape.postrender(this.ctx);
+                shape.afterRender(this.ctx);
             }
         });
     }
@@ -209,9 +209,9 @@ class Renderer {
 
         _.each(gameShapes, (shape) => {
             if (shape.drawOnMinimap) {
-                shape.prerender(ctx);
+                shape.beforeRender(ctx);
                 shape.renderMinimap(ctx);
-                shape.postrenderMinimap(ctx);
+                shape.afterRenderMinimap(ctx);
             }
         });
 
