@@ -111,6 +111,10 @@ class Rocket extends Sprite {
         this.move.v.y += newThrust.y;
     }
 
+    clone() {
+        
+    }
+
     /*
      * Get the current fuel as percentage from the starting fuel.
      */
@@ -185,7 +189,7 @@ class Rocket extends Sprite {
     }
 
     renderMinimap(ctx) {
-        ctx.scale(15, 15);
+        ctx.scale(5, 5);
         ctx.translate(0, -25); // regpoint
         ctx.beginPath();
         ctx.lineTo(30, 50);

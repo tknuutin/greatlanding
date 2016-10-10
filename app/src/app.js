@@ -8,6 +8,7 @@ let { Renderer } = require('render/Renderer');
 let { KeyboardTracker } = require('input/Trackers');
 let { GameUI } = require('render/GameUI');
 
+console.log('yes');
 /*
  * Start app by instantiating renderer, UI, and game controller. Takes in an object.
  * Object properties:

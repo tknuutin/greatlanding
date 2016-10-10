@@ -186,8 +186,7 @@ class GameController {
 
         this.renderer.updateEffects(shapes, this.lastInfo, camera);
         this.renderer.render(shapes, camera);
-        this.renderer.renderUI(this.ui.getShapes());
-        this.renderer.renderMinimap(shapes, camera);
+        this.renderer.renderUI(this.ui.getShapes(), shapes, camera);
 
         // Right now only considering the game loaded once we render once,
         // because of all our prerendering stuff!

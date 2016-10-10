@@ -7,7 +7,7 @@ let _ = require('lodash');
  */
 function checkRocketCollision(rocket, planets) {
     return !rocket.launched ? null : (_.filter(planets, (planet) => {
-        return planet.collidesWith(rocket);
+        return planet.collidesWithRocket(rocket);
     })[0] || null);
 }
 

@@ -276,14 +276,18 @@ class Planet extends Shape {
         }
     }
 
+    collidesWithPoint(px, py) {
+        return distance(px, py, this.x, this.y) <= (this.size / 2);
+    }
+
     /*
      * Checks whether the Rocket collides with this planet. Returns a boolean.
      */
-    collidesWith(rocket) {
+    collidesWithRocket(rocket) {
         return _.some(rocket.getPoints(), (point) => {
             let px = point.x + rocket.x;
             let py = point.y + rocket.y;
-            return distance(px, py, this.x, this.y) <= (this.size / 2);
+            return this.collidesWithPoint(px, py);
         });
     }
 

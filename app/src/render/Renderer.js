@@ -1,6 +1,7 @@
 
 let _ = require('lodash');
 let Calc = require('math/Calc');
+let GravityUtil = require('math/GravityUtil');
 let { renderMinimapGravityGrid } = require('shapes/GravityGrid');
 
 // How slow the background moves compared to the camera.
@@ -15,6 +16,57 @@ const MINIMAP_MARGIN = 10;
 
 // How much zoomed out are we on the minimap?
 const MINIMAP_SCALE = 100;
+
+const LANDINGCAM_SCALE = 50;
+
+function simulate(gameObj, planets) {
+    let obj = {
+        x: gameObj.x, y: gameObj.y,
+        move: {
+            v: {
+                x: gameObj.move.v.x,
+                y: gameObj.move.v.y,
+            }
+        }
+    };
+
+    let ITERS = 200;
+    let SPACING = 10;
+    let path = [{ x: obj.x, y: obj.y }];
+    let spacingCounter = 0;
+    if (gameObj.x > 400) {
+        debugger;
+    }
+    for (var i = ITERS; i >= 0; i--) {
+        _.each(planets, (p) => {
+
+            let g = GravityUtil.applyGravity(p, obj);
+            obj.move.v.x += g.x;
+            obj.move.v.y += g.y;
+        });
+
+        obj.x += obj.move.v.x;
+        obj.y += obj.move.v.y;
+
+        if (_.some(planets, (p) => p.collidesWithPoint(obj.x, obj.y))) {
+            path.push({
+                x: obj.x, y: obj.y
+            });
+            // debugger;
+            break;
+        }
+
+        spacingCounter++;
+        if (spacingCounter >= 5) {
+            spacingCounter = 0;
+            path.push({
+                x: obj.x, y: obj.y
+            });
+        }        
+    }
+
+    return path;
+}
 
 /*
  * The Canvas renderer instance. Takes in an options object with the following properties:
@@ -164,10 +216,91 @@ class Renderer {
      * normal game shapes.
      * - uiShapes: Array of shapes
      */
-    renderUI(uiShapes) {
+    renderUI(uiShapes, gameShapes, cameraPos) {
         let ctx = this.ctx;
         ctx.save();
         this.renderShapes(uiShapes);
+        ctx.restore();
+
+        this.renderMinimap(gameShapes, cameraPos);
+        this.renderLandingCamera(gameShapes, cameraPos);
+    }
+
+    renderLandingCamera(gameShapes, cameraPos) {
+        let rocket = _.find(gameShapes, (s) => s.isRocket);
+        let path = null;
+        if (rocket.launched && !rocket.landed) {
+            let planets = this.uiEffectInfo.planets;
+
+            path = simulate(rocket, planets);
+            // window.simulatedPaths = window.simulatedPaths || 0;
+            // window.simulatedPaths++;
+            // if (window.simulatedPaths >= 20) {
+            //     console.log(path);
+            //     debugger;
+            // }
+        }
+
+        let w = MINIMAP_WIDTH;
+        let h = MINIMAP_HEIGHT;
+        let marginX = MINIMAP_MARGIN;
+        let marginY = MINIMAP_MARGIN * 2 + h;
+        let ctx = this.ctx;
+        let scale = LANDINGCAM_SCALE;
+
+        ctx.save();
+
+        ctx.translate(this.width - marginX - w, marginY);
+
+        ctx.strokeStyle = '#1A6D29';
+        ctx.strokeRect(0, 0, w, h);
+
+        ctx.beginPath();
+        ctx.lineTo(w, 0);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.lineTo(0, 0);
+        ctx.clip();
+
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w * 2, h * 2);
+
+        ctx.scale(1 / scale, 1 / scale);
+
+        // Wow this should probably be prerendered!
+        // renderMinimapGravityGrid(ctx, cameraPos, w, h, scale, this.uiEffectInfo.planets);
+
+        ctx.translate(-cameraPos.x + (w / 2 * scale), -cameraPos.y + (h / 2 * scale));
+
+        _.each(gameShapes, (shape) => {
+            if (shape.drawOnMinimap) {
+                // if (shape.isRocket) {
+                //     ctx.scale(1/3, 1/3);
+
+                // }
+                shape.beforeRender(ctx);
+                shape.renderMinimap(ctx);
+                shape.afterRenderMinimap(ctx);
+
+                // if (shape.isRocket) {
+                //     ctx.scale(3, 3);
+                // }
+            }
+        });
+
+        if (path) {
+            ctx.moveTo(path[0].x, path[1].y);
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 20;
+            _.each(path, (p) => {
+                ctx.lineTo(p.x, p.y);
+            });
+            // ctx.closePath();
+            ctx.stroke();
+            // console.log('drew', path.length);
+        }
+
         ctx.restore();
     }
 
