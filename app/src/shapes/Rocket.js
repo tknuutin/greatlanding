@@ -17,6 +17,7 @@ class Rocket extends Sprite {
 
         // Is the rocket resting on a planet surface?
         this.launched = false;
+        this.optimalRotation = 0;
 
         // dumb
         this.isRocket = true;
@@ -26,6 +27,9 @@ class Rocket extends Sprite {
 
         this.fuel = ROCKET.START_FUEL;
         this.drawOnMinimap = true;
+
+        this.autolandOn = false;
+        this.autolandTurnEnginesCooldown = false;
 
         this.points = [
             { x: 0, y: -this.height / 2 },
@@ -82,12 +86,7 @@ class Rocket extends Sprite {
         });
     }
 
-    /*
-     * Send a start or stop signal to a given engine. Starts smoke effect.
-     * - engine: One of the members of rocket.engines.
-     * - isPowered: Boolean whether engine should be powered or not.
-     */
-    sendSignalToEngine(engine, isPowered) {
+    _sendSignal(engine, isPowered) {
         if ((this.launched || engine === this.engines.main) &&
             !(this.fuel <= 0 && isPowered)) {
 
@@ -98,6 +97,24 @@ class Rocket extends Sprite {
                 engine.smoke.stop();
             }
         }
+    }
+
+    /*
+     * Send a start or stop signal to a given engine. Starts smoke effect.
+     * - engine: One of the members of rocket.engines.
+     * - isPowered: Boolean whether engine should be powered or not.
+     */
+    sendSignalToEngine(engine, isPowered) {
+        if (this.autolandOn && 
+            (engine === this.engines.left || engine === this.engines.right)) {
+            return;
+        }
+
+        this._sendSignal(engine, isPowered);
+    }
+
+    setOptimalRotation(rot) {
+        this.optimalRotation = rot;
     }
 
     /*
@@ -124,12 +141,108 @@ class Rocket extends Sprite {
     useFuel(amount) {
         this.fuel = Math.max(0, this.fuel - amount);
         if (this.fuel <= 0) {
-            this.sendSignalToEngine(this.engines.main, false);
-            this.sendSignalToEngine(this.engines.reverse1, false);
-            this.sendSignalToEngine(this.engines.reverse2, false);
-            this.sendSignalToEngine(this.engines.left, false);
-            this.sendSignalToEngine(this.engines.right, false);
+            this._sendSignal(this.engines.main, false);
+            this._sendSignal(this.engines.reverse1, false);
+            this._sendSignal(this.engines.reverse2, false);
+            this._sendSignal(this.engines.left, false);
+            this._sendSignal(this.engines.right, false);
         }
+    }
+
+    fireEngines() {
+        if (this.engines.left.on) {
+            this.useFuel(LEFT.THRUST);
+            this.rotspeed += LEFT.THRUST;
+        }
+        if (this.engines.right.on) {
+            this.useFuel(RIGHT.THRUST);
+            this.rotspeed -= RIGHT.THRUST;
+        }
+
+        if (this.engines.left.on) {
+            let thrust = this.engines.left.thrust || LEFT.THRUST;
+            this.useFuel(thrust);
+            this.rotspeed += thrust;
+        }
+        if (this.engines.right.on) {
+            let thrust = this.engines.right.thrust || RIGHT.THRUST;
+            this.useFuel(thrust);
+            this.rotspeed -= thrust;
+        }
+    }
+
+    autolandEngineSequence() {
+        console.log('autolandengine sequence');
+        function getRotationDirection(opt, rot) {
+            if (opt <= rot) {
+                let dist = rot - opt;
+                return dist > 180 ? 1 : -1;
+            } else {
+                let dist = opt - rot;
+                return dist > 180 ? -1 : 1;
+            }
+        }
+
+        function getRotationDistance(target, current, direction) {
+            if (direction === 1) {
+                if (target < current) {
+                    target += 360;
+                }
+                return target - current;
+            } else {
+                if (target > current) {
+                    target -= 360;
+                }
+                return current - target;
+            }
+        }
+
+        if (this.autolandTurnEnginesCooldown) {
+            // console.log('handle engine cooldown');
+            return;
+        }
+
+        if (this.engines.right.on || this.engines.left.on) {
+            return;
+        }
+
+
+        let opt = this.optimalRotation;
+        let direction = getRotationDirection(opt, this.rotation);
+        let distance = getRotationDistance(opt, this.rotation, direction);
+
+        if (distance < 5) {
+            this._sendSignal(this.engines.left, false);
+            this._sendSignal(this.engines.right, false);
+            this.autolandTurnEnginesCooldown = false;
+            clearInterval(this.autolandTurnEnginesInterval);
+            return;
+        }
+
+        let engine = direction < 0 ? this.engines.right : this.engines.left;
+        let maxThrust = direction < 0 ? RIGHT.THRUST : LEFT.THRUST;
+
+        let thrust = null;
+        if (distance > 30) {
+            thrust = maxThrust;
+        } else if (distance > 20) {
+            thrust = maxThrust / 3;
+        } else if (distance > 10) {
+            thrust = maxThrust / 3;
+        }
+        engine.thrust = thrust;
+
+        this._sendSignal(engine, true);
+        console.log('turning on engine:', direction);
+        this.autolandTurnEnginesInterval = setTimeout(() => {
+            console.log('turning off engine:', direction);
+            this._sendSignal(engine, false);
+            this.autolandTurnEnginesCooldown = true;
+            this.autolandTurnEnginesInterval = setTimeout(() => {
+                console.log('re-enabling engine:', direction);
+                this.autolandTurnEnginesCooldown = false;
+            }, 50);
+        }, 50);
     }
 
     /*
@@ -149,14 +262,13 @@ class Rocket extends Sprite {
             this.useFuel(REVERSE.THRUST);
             this.applyForwardForce(REVERSE.THRUST);
         }
-        if (this.engines.left.on) {
-            this.useFuel(LEFT.THRUST);
-            this.rotspeed += LEFT.THRUST;
+
+
+        if (this.autolandOn) {
+            this.autolandEngineSequence();
         }
-        if (this.engines.right.on) {
-            this.useFuel(RIGHT.THRUST);
-            this.rotspeed -= RIGHT.THRUST;
-        }
+
+        this.fireEngines();
     }
 
     /*
@@ -182,6 +294,29 @@ class Rocket extends Sprite {
         smoke.beforeRender(ctx);
         smoke.render(ctx);
         smoke.afterRender(ctx);
+    }
+
+    toggleAutoLand() {
+        this.autolandOn = !this.autolandOnfauto;
+        if (this.autolandOn) {
+            console.log('Autoland on!');
+            this.engines.right.thrust = RIGHT.THRUST / 2;
+            this.engines.left.thrust = LEFT.THRUST / 2;
+        } else {
+            if (this.autolandTurnEnginesInterval) {
+                clearTimeout(this.autolandTurnEnginesInterval);
+            }
+            this.engines.right.thrust = null;
+            this.engines.left.thrust = null;
+            console.log('Autoland off.');
+        }
+
+        this.autolandTurnEnginesInterval = null;
+        this.autolandTurnEnginesCooldown = false;
+        // this.engines.right.turnOffAt = null;
+        // this.engines.left.turnOffAt = null;
+        this._sendSignal(this.engines.right, false);
+        this._sendSignal(this.engines.left, false);
     }
 
     renderMinimap(ctx) {

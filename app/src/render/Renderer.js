@@ -33,6 +33,14 @@ class Renderer {
 
         this.count = 0;
         this.logging = false;
+
+        window.drawDebug = (vec, text) => {
+            this.debugv = vec;
+            if (window._debugText) {
+                window._debugText.visible = !!text;
+                window._debugText.setText(text || '');    
+            }
+        }
     }
 
     /*
@@ -136,7 +144,25 @@ class Renderer {
 
         ctx.translate(-cameraPos.x + (this.width / 2), -cameraPos.y + (this.height / 2));
         this.renderShapes(shapes);
+        
         ctx.restore();
+
+        if (this.debugv) {
+            ctx.save();
+            
+            ctx.translate(this.width / 2, this.height / 2);
+            ctx.beginPath();
+            ctx.moveTo(0, 0)
+            ctx.lineTo(this.debugv.x, this.debugv.y);
+            ctx.closePath();
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 5;
+            
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
     }
 
     /*
@@ -169,6 +195,27 @@ class Renderer {
         ctx.save();
         this.renderShapes(uiShapes);
         ctx.restore();
+
+        if (this.debugtext) {
+            // console.log('hello');
+            ctx.save();
+            // let r = _.find(shapes, (r) => r.isRocket);
+            // ctx.translate(r.x, r.y);
+            
+            // ctx.moveTo(0, 200);
+            
+            ctx.translate(20, this.height - 100);
+            ctx.moveTo(0, 0);
+            ctx.
+            ctx.lineTo(this.debugv.x, this.debugv.y);
+            ctx.closePath();
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 5;
+            
+            ctx.stroke();
+
+            ctx.restore();
+        }
     }
 
     /*

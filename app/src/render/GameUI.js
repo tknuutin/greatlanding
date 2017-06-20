@@ -182,7 +182,18 @@ class UIMessage {
             text: 'Press space to try again'
         });
 
-        this.shapes = [this.box, this.header, this.message, this.resetInfo];
+        let debugText = new TextNode({
+            name: 'debug',
+            visible: false,
+            x: 20, y: 450,
+            fillStyle: '#ff0000',
+            fontSize: 20,
+            text: ''
+        });
+
+        window._debugText = debugText;
+
+        this.shapes = [this.box, this.header, this.message, this.resetInfo, debugText];
         this.setVisible(false);
     }
 

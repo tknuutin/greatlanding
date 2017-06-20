@@ -2,7 +2,7 @@
 
 let CollisionManager = require('logic/CollisionManager');
 let V = require('math/Vector');
-let { degs, getPlanetLateralSpeed, getPlanetVerticalSpeed } = require('math/Calc');
+let { degs, rads, getPlanetLateralSpeed, getPlanetVerticalSpeed, clampRot } = require('math/Calc');
 let { SpriteSheet } = require('shapes/Effects');
 let { LIMIT_LATERAL, LIMIT_VERTICAL, LIMIT_ANGLE } = require('config/GameConfig');
 
@@ -21,6 +21,17 @@ function getRocketAngleToPlanet(planet, rocket) {
     let landVector = V.sub(lp1, lp2);
 
     return degs(V.angle(landVector, surfaceTangent));
+}
+
+function getOptimalRotation(planet, rocket, rocketAngletoPlanet) {
+    let toPlanet = V.sub(planet, rocket);
+    let angle = degs(V.angle(toPlanet, { x: 0, y: 10 }));
+    if (rocket.x < planet.x) {
+        angle = 360 - angle;
+    }
+
+    window.drawDebug(null, angle + '');
+    return angle;
 }
 
 /*
@@ -204,6 +215,7 @@ class GameLogic {
         info.rocket = rocket;
         info.landing = true;
         info.closestPlanet = closestPlanet;
+
         info.closestPlanetDistance = closestPlanetInfo.dist;
         info.planets = shapeMgr.planets;
 
@@ -213,6 +225,10 @@ class GameLogic {
             info.vertical = this.crashInfo.vertical;
             info.angle = this.crashInfo.angle;
         } else {
+            rocket.setOptimalRotation(getOptimalRotation({
+                x: closestPlanet.x, y: closestPlanet.y
+            }, { x: rocket.x, y: rocket.y }));
+
             info.speed = V.magnitude(rocket.move.v);
             info.lateral = getPlanetLateralSpeed(closestPlanet, rocket);
             info.vertical = getPlanetVerticalSpeed(closestPlanet, rocket);

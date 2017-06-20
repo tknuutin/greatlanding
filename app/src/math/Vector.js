@@ -56,7 +56,7 @@ function unit(v) {
 }
 
 function magnitude(v) {
-    return Math.sqrt(Math.pow(v.x, 2) + Math.pow(v.y, 2));
+    return Math.sqrt(Math.pow(v.x, 2) + Math.pow(   v.y, 2));
 }
 
 function dot(v1, v2) {

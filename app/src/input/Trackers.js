@@ -16,8 +16,15 @@ const KEYS = {
     A: 65,
     S: 83,
     D: 68,
+    T: 84,
     SPACE: 32
 };
+
+function fireInput(func) {
+    if (func) {
+        func();
+    }
+}
 
 /*
  * A tracker for the app key strokes. Fires callbacks when it notices a specific key.
@@ -26,7 +33,7 @@ const KEYS = {
  */
 class KeyboardTracker {
     constructor(callbacks) {
-        this.callbacks = callbacks;
+        this.callbacks = callbacks.inputs;
 
         document.addEventListener('keydown', (evt) => this.onKeyDown(evt));
         document.addEventListener('keyup', (evt) => this.onKeyUp(evt));
@@ -38,16 +45,16 @@ class KeyboardTracker {
     onKeyDown(evt) {
         switch (evt.keyCode) {
             case KEYS.W:
-                this.callbacks.onForwardDown();
+                fireInput(this.callbacks.onForwardDown);
                 break;
             case KEYS.A:
-                this.callbacks.onLeftDown();
+                fireInput(this.callbacks.onLeftDown);
                 break;
             case KEYS.S:
-                this.callbacks.onReverseDown();
+                fireInput(this.callbacks.onReverseDown);
                 break;
             case KEYS.D:
-                this.callbacks.onRightDown();
+                fireInput(this.callbacks.onRightDown);
                 break;
             default:
                 break;
@@ -60,19 +67,23 @@ class KeyboardTracker {
     onKeyUp(evt) {
         switch (evt.keyCode) {
             case KEYS.W:
-                this.callbacks.onForwardUp();
+                fireInput(this.callbacks.onForwardUp);
                 break;
             case KEYS.A:
-                this.callbacks.onLeftUp();
+                fireInput(this.callbacks.onLeftUp);
                 break;
             case KEYS.S:
-                this.callbacks.onReverseUp();
+                fireInput(this.callbacks.onReverseUp);
                 break;
             case KEYS.D:
-                this.callbacks.onRightUp();
+                fireInput(this.callbacks.onRightUp);
                 break;
             case KEYS.SPACE:
-                this.callbacks.onSpace();
+                fireInput(this.callbacks.onSpace);
+                break;
+            case KEYS.T:
+                fireInput(this.callbacks.onKey('T'));
+                break;
             default:
                 break;
         }

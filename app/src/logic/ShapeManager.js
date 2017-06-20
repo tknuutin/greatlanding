@@ -2,12 +2,16 @@
 let _ = require('lodash');
 
 let { Rocket } = require('shapes/Rocket');
-let { Rectangle } = require('shapes/Shapes');
+let { Rectangle, TextNode } = require('shapes/Shapes');
 let { clampRot, distancePoints } = require('math/Calc');
 let V = require('math/Vector');
 
 let { ROCKET } = require('config/GameConfig');
 let { getGravityStrenghtForPoint, applyGravity } = require('math/GravityUtil');
+
+class RocketController {
+    
+}
 
 /*
  * Shape managing class. All shapes and entities should be registered

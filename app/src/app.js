@@ -31,17 +31,18 @@ function startApp(opts) {
     });
 
     let kb = new KeyboardTracker({
-        onForwardDown: game.keyInputs.onForwardDown,
-        onForwardUp: game.keyInputs.onForwardUp,
+        inputs: game.keyInputs
+        // onForwardDown: game.keyInputs.onForwardDown,
+        // onForwardUp: game.keyInputs.onForwardUp,
 
-        onReverseDown: game.keyInputs.onReverseDown,
-        onReverseUp: game.keyInputs.onReverseUp,
+        // onReverseDown: game.keyInputs.onReverseDown,
+        // onReverseUp: game.keyInputs.onReverseUp,
 
-        onRightDown: game.keyInputs.onRightDown,
-        onRightUp: game.keyInputs.onRightUp,
-        onLeftDown: game.keyInputs.onLeftDown,
-        onLeftUp: game.keyInputs.onLeftUp,
-        onSpace: game.keyInputs.onSpace
+        // onRightDown: game.keyInputs.onRightDown,
+        // onRightUp: game.keyInputs.onRightUp,
+        // onLeftDown: game.keyInputs.onLeftDown,
+        // onLeftUp: game.keyInputs.onLeftUp,
+        // onSpace: game.keyInputs.onSpace
     });
 
     game.startLoop();

@@ -91,16 +91,22 @@ class GameController {
             },
             onLeftUp: (rocket) => {
                 rocket.sendSignalToEngine(rocket.engines.right, false);
+            },
+            onKey: (rocket, keyName) => {
+                console.log('on key', keyName);
+                if (keyName === 'T') {
+                    rocket.toggleAutoLand();
+                }
             }
         }).reduce((result, func, key) => {
-            result[key] = () => func(shapeMgr.getRocket());
+            result[key] = (key) => func(shapeMgr.getRocket(), key);
             return result;
         }, {}).merge({
             onSpace: () => {
                 this.reset();
                 this.init();
                 this.doneWithReset = Date.now();
-            }
+            },
         }).value();
 
         this.init();
